@@ -1,0 +1,158 @@
+{
+    "ideas": {
+        "prompt": "Please generate three brief story ideas, of five to ten words each, that are appropriate for {age_min}-{age_max} year-old children. Do not number the list, or put periods on the end of the ideas."
+    },
+    "morals": {
+        "prompt": "Please generate three moral lessons, of five to ten words each, that are appropriate for {age_min}-{age_max} year-old children. Do not number the list, or put periods on the end of the lessons."
+    },
+    "story": {
+        "prompt": "Please write a {author_style} children's story for {age_min}-{age_max} year-old children, about '{story_theme}'. The story should teach a valuable lesson on '{moral_lesson}'. Make the story engaging and age-appropriate. It should be {total_paragraphs} paragraphs long. After each paragraph, I will provide the input x/y (the xth paragraph out of y paragraphs) for you to generate the next paragraph. Please begin with the first paragraph:\n\n1/{total_paragraphs}",
+        "styles": [
+            {
+                "author": "Dr. Seuss",
+                "style": "whimsical and rhyming"
+            },
+            {
+                "author": "Beatrix Potter",
+                "style": "charming and animal-centered"
+            },
+            {
+                "author": "Roald Dahl",
+                "style": "fantastical and darkly humorous"
+            },
+            {
+                "author": "Maurice Sendak",
+                "style": "imaginative and dreamlike"
+            },
+            {
+                "author": "Eric Carle",
+                "style": "colorful and simple"
+            },
+            {
+                "author": "Shel Silverstein",
+                "style": "poetic and quirky"
+            },
+            {
+                "author": "E.B. White",
+                "style": "warm and descriptive"
+            },
+            {
+                "author": "C.S. Lewis",
+                "style": "allegorical and adventure-filled"
+            },
+            {
+                "author": "Lewis Carroll",
+                "style": "nonsensical and playful"
+            },
+            {
+                "author": "J.K. Rowling",
+                "style": "magical and character-driven"
+            },
+            {
+                "author": "Astrid Lindgren",
+                "style": "spirited and humorous"
+            },
+            {
+                "author": "A.A. Milne",
+                "style": "gentle and philosophical"
+            },
+            {
+                "author": "Madeline L'Engle",
+                "style": "thoughtful and fantastical"
+            },
+            {
+                "author": "L. Frank Baum",
+                "style": "inventive and vivid"
+            },
+            {
+                "author": "Beverly Cleary",
+                "style": "relatable"
+            },
+            {
+                "author": "Enid Blyton",
+                "style": "enchanting and virtuous"
+            },
+            {
+                "author": "H.A. and Margret Rey",
+                "style": "curious and engaging"
+            },
+            {
+                "author": "P.L. Travers",
+                "style": "magical and witty"
+            },
+            {
+                "author": "Louisa May Alcott",
+                "style": "family-centered, coming of age"
+            }
+        ]
+    },
+    "illustration": {
+        "prompt": "Provide a concise description, prioritizing comma-separated keywords over fully descriptive sentences, of a potential visual representation of the following scene in less than 400 characters. The representation's style is inspired by {artist}, who is known for their uniquely {style} style. Focus on describing specific key elements, visual details, and styles. ```{story_passage}```",
+        "styles": [
+            {
+                "artist": "Walt Disney",
+                "style": "colorful, clean lines, anthropomorphic, magical, family-friendly, iconic, hand-drawn"
+            },
+            {
+                "artist": "Dr. Seuss",
+                "style": "quirky, exaggerated, imaginative, playful, bold lines, limited color palette, surreal"
+            },
+            {
+                "artist": "Beatrix Potter",
+                "style": "delicate, watercolor, pastoral, detailed, anthropomorphic, nostalgic, soft colors"
+            },
+            {
+                "artist": "Maurice Sendak",
+                "style": "richly detailed, imaginative, fantastical, emotional, muted colors, pen and ink, cross-hatching"
+            },
+            {
+                "artist": "Eric Carle",
+                "style": "vibrant, collage-like, bold colors, textured, patterned, childlike, cut-paper"
+            },
+            {
+                "artist": "Hayao Miyazaki",
+                "style": "whimsical, fluid, fantastical, lush, anime, hand-drawn, evocative"
+            },
+            {
+                "artist": "Quentin Blake",
+                "style": "playful, sketchy, loose lines, energetic, expressive, humorous, watercolor"
+            },
+            {
+                "artist": "Mary Blair",
+                "style": "bold, stylized, geometric, colorful, mid-century modern, whimsical, graphic"
+            },
+            {
+                "artist": "Oliver Jeffers",
+                "style": "whimsical, contemporary, childlike, mixed media, narrative, hand-lettering, emotive"
+            },
+            {
+                "artist": "Tove Jansson",
+                "style": "charming, Nordic, dreamlike, muted colors, ink and watercolor, organic, minimalist"
+            },
+            {
+                "artist": "Chris Van Allsburg",
+                "style": "realistic, mysterious, atmospheric, monochromatic, pencil, chiaroscuro, detailed"
+            },
+            {
+                "artist": "Shel Silverstein",
+                "style": "minimalistic, black-and-white, pen and ink, simple, expressive, humorous, relatable"
+            },
+            {
+                "artist": "Lois Ehlert",
+                "style": "bright, collage-style, bold shapes, textured, nature-inspired, vivid colors, patterned"
+            },
+            {
+                "artist": "Graeme Base",
+                "style": "detailed, fantasy-themed, intricate, lush, watercolor, hidden images, storytelling"
+            },
+            {
+                "artist": "Jan Brett",
+                "style": "richly textured, folk-art inspired, detailed, traditional, lush, patterned, border illustrations"
+            },
+            {
+                "artist": "Peter H. Reynolds",
+                "style": "simple, expressive, minimalist, watercolor, fluid lines, emotive, gentle"
+            }
+        ]
+    }
+}
