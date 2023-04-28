@@ -1,0 +1,1 @@
+Please generate 3 brief story ideas, of 5-10 words each, that are appropriate for {age_min}-{age_max} year-olds. For each idea, also include a couple emojis that represent the story idea. **Only** provide the ideas themselves in your response, formatted like: `- emoji: story idea` **Do not** include any other content or apply additional formatting.

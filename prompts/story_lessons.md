@@ -1,0 +1,1 @@
+Please generate 15 lessons, of 5-10 words each, that are age-appropriate for {age_min}-{age_max} year-olds, and fit with the story theme '{story_theme}'. **Only** provide the lessons themselves in your response, formatted like: `- story lesson` **Do not** include any other content or apply additional formatting.
