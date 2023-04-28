@@ -1,2 +1,0 @@
-MODEL = "gpt-3.5-turbo"
-OPENAI_API_KEY = "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"

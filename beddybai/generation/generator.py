@@ -1,97 +1,188 @@
-import re
-from typing import Tuple
+import os
+from pathlib import Path
+import random
+from typing import AsyncGenerator
 
-from ..common.utils import TITLE_LINE_REGEX
-from .api import OpenAI
+from .api import OpenAI, user
+from .prompt import Prompt
+from .types import Artist, Author, Page, Story, StoryInfo, Theme, Lesson
+
+
+BASE_PATH = Path(os.getcwd())
+PROMPTS_PATH = BASE_PATH / "prompts"
 
 
 class StoryGenerator:
-    def __init__(
-        self,
-        author: dict[str, str],
-        artist: dict[str, str],
-        age_range: Tuple[int, int] = (
-            2,
-            8,
-        ),
-        total_paragraphs: int = 7,
-    ):
-        self.author_style = author
-        self.artist_style = artist
-        self.age_range = age_range
-        self.total_paragraphs = total_paragraphs
-        self.story_theme = None
-        self.story_lesson = None
+    """
+    A class for generating stories, titles, themes, lessons, authors, artists,
+    and images using OpenAI's API. Each story is tailored for a specific age
+    range based on the user inputs.
+    """
+
+    def __init__(self, age_min: int = 5, age_max: int = 9):
+        """Initialize a new instance of the StoryGenerator class."""
+
+        self.age_min = age_min
+        self.age_max = age_max
         self.api = OpenAI()
 
-    async def generate_story_ideas(self, num: int = 3):
-        pass
+    @staticmethod
+    def choose_author_and_artist(
+        authors: list[Author], artists: list[Artist]
+    ) -> StoryInfo:
+        """Choose an author and artist for the story, ensuring that the author and
+        artist are the same if they appear in both lists, otherwise selecting a
+        random artist."""
+
+        author = random.choice(authors)
+        artist = next(
+            (artist for artist in artists if artist["artist"] == author["author"]),
+            random.choice(artists),
+        )
+
+        return {**author, **artist}  # type: ignore
+
+    async def choose_lesson_for_theme(self, themes: list[Theme], **kwargs) -> StoryInfo:
+        """Choose a lesson based on the provided theme or a random theme from the
+        list."""
+
+        theme = kwargs.get("story_theme") or random.choice(themes)
+        lessons = await self.generate_story_lessons(theme["story_theme"], **kwargs)
+        lesson = random.choice(lessons)
+
+        return {**theme, "story_lesson": lesson}  # type: ignore
+
+    async def generate_story_themes(self, num: int = 3) -> list[Theme]:
+        """Generate a list of story themes based on the target age range."""
+
+        info: StoryInfo = {"age_min": self.age_min, "age_max": self.age_max, "num": num}
+        prompt = Prompt.from_file(PROMPTS_PATH / "story_themes.md").format_with(info)
+        messages = (user(prompt),)
+        print(f"Generating themes for {info}...")
+        theme_response = await self.api.get_completion(messages)
+
+        return [
+            {
+                "emoji": (theme := i.lstrip("- ").rstrip(".").split(": "))[0],
+                "story_theme": theme[1].lower(),
+            }
+            for i in theme_response.splitlines()
+        ]
+
+    async def generate_story_lessons(
+        self, story_theme: str, num: int = 10
+    ) -> list[Lesson]:
+        """Generate a list of lessons for a specific story theme based on the target
+        age range."""
+
+        info: StoryInfo = {
+            "age_min": self.age_min,
+            "age_max": self.age_max,
+            "num": num,
+            "story_theme": story_theme,
+        }
+        prompt = Prompt.from_file(PROMPTS_PATH / "story_lessons.md").format_with(info)
+        messages = (user(prompt),)
+        print(f"Generating lessons for {info}...")
+        lesson_response = await self.api.get_completion(messages)
+
+        return [
+            lesson.lstrip("- ").strip().rstrip(".").lower()
+            for lesson in lesson_response.splitlines()
+        ]
+
+    async def generate_author_styles(self, num: int = 10) -> list[Author]:
+        """Generate a list of author styles based on the target age range."""
+
+        info: StoryInfo = {"age_min": self.age_min, "age_max": self.age_max, "num": num}
+        prompt = Prompt.from_file(PROMPTS_PATH / "author_styles.md").format_with(info)
+        messages = (user(prompt),)
+        print(f"Generating authors for {info}...")
+        author_response = await self.api.get_completion(messages)
+
+        return [
+            {
+                "author": (author := i.lstrip("- ").rstrip(".").split(": "))[0],
+                "author_style": author[1].lower(),
+            }
+            for i in author_response.splitlines()
+        ]
+
+    async def generate_artist_styles(self, num: int = 10) -> list[Artist]:
+        """Generate a list of artist styles based on the target age range."""
+
+        info: StoryInfo = {"age_min": self.age_min, "age_max": self.age_max, "num": num}
+        prompt = Prompt.from_file(PROMPTS_PATH / "artist_styles.md").format_with(info)
+        messages = (user(prompt),)
+        print(f"Generating artists for {info}...")
+        artist_response = await self.api.get_completion(messages)
+
+        return [
+            {
+                "artist": (artist := i.lstrip("- ").rstrip(".").split(": "))[0],
+                "artist_style": artist[1].lower(),
+            }
+            for i in artist_response.splitlines()
+        ]
+
+    async def generate_title(self, story: list[Page]) -> str:
+        """Generate a title for the given story based on its content."""
+
+        story_paragraphs: str = "\n\n".join(page["content"] for page in story)
+        prompt = Prompt.from_file(PROMPTS_PATH / "title.md").format_with(
+            {"story": story_paragraphs}
+        )
+        messages = (user(prompt),)
+        print("Generating title for story...")
+        title_response = await self.api.get_completion(messages)
+
+        return title_response.strip()
 
     async def generate_image(
-        self, segment_data: dict[str, str], info: dict[str, str | int], prompts: dict
+        self, story_paragraph: str, story_info: StoryInfo, **kwargs
     ) -> str:
-        """
-        Generates a prompt with which to generate an image, and then
-        generates an image with it. Updates the data given to the function.
-        """
-        art_messages = (
-            OpenAI.user(
-                prompts["illustration"]["prompt"].format(
-                    story_passage=segment_data["section"], **info["artist_style"]
-                )
-            ),
-        )
-        prompt = await self.api.get_completion(art_messages)
-        # print(prompt)
-        segment_data["art"] = await self.api.get_image(prompt)
-        return segment_data["art"]
+        """Generate an image based on the story paragraph and story information."""
 
-    async def process_chunk(self, chunk, sections, buffer, title=""):
-        segment_data = None
+        info: StoryInfo = {
+            **story_info,  # type: ignore
+            "story_paragraph": story_paragraph,
+        }
 
-        if (content := chunk.get("content")) is not None:
-            buffer += content
-            segment = ""
-            print(content, end="")
+        prompt = Prompt.from_file(PROMPTS_PATH / "dall_e_prompt.md").format_with(info)
+        messages = (user(prompt),)
+        print("Generating image prompt...")
+        prompt_response = await self.api.get_completion(messages)
 
-            while "\n\n" in buffer:
-                segment_data = {"section": None, "art": None}
+        print(f"Generating image for {prompt_response}...")
+        art = await self.api.get_image(prompt_response, **kwargs)
+        return art
 
-                segment, _, buffer = buffer.partition("\n\n")
+    async def generate_story(self, story_info: StoryInfo) -> Story:
+        """Generate a complete story based on the provided story information."""
 
-                if title_match := re.match(TITLE_LINE_REGEX, segment.rstrip()):
-                    match = title_match.groups()[0]
-                    if not sections:
-                        title = match
-                    else:
-                        segment_data["section"] = match
-                else:
-                    segment_data["section"] = segment.rstrip()
-        elif (choices := chunk.get("choices")) and choices[0][
-            "finish_reason"
-        ] is not None:
-            segment_data = {"art": None, "section": buffer.rstrip()}
+        story_info.update({"age_min": self.age_min, "age_max": self.age_max})
+        prompt = Prompt.from_file(PROMPTS_PATH / "story.md").format_with(story_info)
+        messages = (user(prompt),)
+        print(f"Generating story for {story_info}...")
+        story_response = await self.api.get_completion(messages)
+        story_paragraphs: list[Page] = [
+            {"content": paragraph.strip()} for paragraph in story_response.split("\n\n")
+        ]
+        story_title = await self.generate_title(story_paragraphs)
 
-        if segment_data is not None:
-            sections.append(segment_data)
-        # image_task = asyncio.create_task(generate_image(segment_data, info, prompts))
-        # pending_image_tasks.append(image_task)
+        return {"title": story_title, "pages": story_paragraphs}
 
-        return title, buffer
+    async def generate_pages(
+        self, story_info: StoryInfo, **kwargs
+    ) -> AsyncGenerator[str | Page, None]:
+        """Generate pages for a story, including images, based on the provided story
+        information."""
 
-    async def generate_story(
-        self, prompt: str, info: dict[str, str | int], prompts: dict
-    ) -> Tuple[str, list[dict[str, str]]]:
-        """Generates a story from a prompt, including illustrations."""
+        story = await self.generate_story(story_info)
+        yield story["title"]
 
-        title = ""
-        sections: list[dict[str, str]] = []
-        # pending_image_tasks = []
-        buffer = ""
-
-        async for chunk in self.api.get_streaming_completion(prompt):
-            title, buffer = await self.process_chunk(chunk, sections, buffer, title)
-
-        # await asyncio.gather(*pending_image_tasks)
-
-        return title, sections
+        for page in story["pages"]:
+            page["image"] = await self.generate_image(
+                page["content"], story_info, **kwargs
+            )
+            yield page
