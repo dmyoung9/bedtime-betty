@@ -1,0 +1,1 @@
+Please generate {num} brief story themes, of 5-10 words each, that are appropriate for {age_min}-{age_max} year-olds. For each theme, also include some emojis that represent the story theme. **Only** provide the themes themselves in your response, formatted like: `- emoji: story theme` **Do not** include any other content or apply additional formatting.
