@@ -1,32 +1,42 @@
-from dotenv import load_dotenv
+from dataclasses import dataclass
+from typing import Literal, TypeVar, TypedDict, Optional
 
-load_dotenv()
-
-import os  # noqa: E402
-from typing import Literal, NotRequired, TypedDict  # noqa: E402
-
+Item = TypeVar("Item")
 Lesson = str
+Title = str
 Role = Literal["system", "assistant", "user"]
+StoryKey = Literal["age_min", "age_max", "num", "story_theme", "story_lesson", "plural"]
 
 
-class Artist(TypedDict):
-    artist: str
+class StoryInfo(TypedDict, total=False):
+    age_min: int
+    age_max: int
+    num: int
+    emoji: str
+    story_theme: str
+    story_lesson: str
+    plural: str
+
+
+@dataclass
+class Artist:
+    artist_name: str
     artist_style: str
 
 
-class Author(TypedDict):
-    author: str
+@dataclass
+class Author:
+    author_name: str
     author_style: str
 
 
-class Config:
-    def __init__(self):
-        self.OPENAI_API_KEY: str = os.environ.get("OPENAI_API_KEY")
-
-
-class Theme(TypedDict):
+@dataclass
+class Theme:
     emoji: str
     story_theme: str
+
+    def __str__(self):
+        return f"{self.emoji} - {self.story_theme}"
 
 
 class Message(TypedDict):
@@ -34,28 +44,13 @@ class Message(TypedDict):
     content: str
 
 
-class Page(TypedDict):
+@dataclass
+class Page:
     content: str
-    image: NotRequired[None | str]
+    image: Optional[None | str]
 
 
-class Story(TypedDict):
+@dataclass
+class Story:
     title: str
     pages: list[Page]
-
-
-class StoryInfo(TypedDict):
-    emoji: NotRequired[None | str]
-    story_theme: NotRequired[None | str]
-    story_lesson: NotRequired[None | str]
-    author: NotRequired[None | str]
-    author_style: NotRequired[None | str]
-    artist: NotRequired[None | str]
-    artist_style: NotRequired[None | str]
-    age_min: NotRequired[None | int]
-    age_max: NotRequired[None | int]
-    num: NotRequired[None | int]
-    story: NotRequired[None | str]
-
-
-config = Config()

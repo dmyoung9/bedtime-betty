@@ -1,15 +1,26 @@
 import os
 from pathlib import Path
-import random
-from typing import AsyncGenerator
+from typing import Callable, Optional, Union
 
 from .api import OpenAI, user
 from .prompt import Prompt
-from .types import Artist, Author, Page, Story, StoryInfo, Theme, Lesson
+from .types import (
+    Artist,
+    Author,
+    Item,
+    StoryInfo,
+    Theme,
+    Lesson,
+    Title,
+)
 
 
 BASE_PATH = Path(os.getcwd())
 PROMPTS_PATH = BASE_PATH / "prompts"
+
+# Ages when it is most influential to share bedtime stories with your kids!
+DEFAULT_AGE_MIN = 2
+DEFAULT_AGE_MAX = 7
 
 
 class StoryGenerator:
@@ -19,170 +30,153 @@ class StoryGenerator:
     range based on the user inputs.
     """
 
-    def __init__(self, age_min: int = 5, age_max: int = 9):
+    def __init__(self, api_key: str):
         """Initialize a new instance of the StoryGenerator class."""
+        self.api = OpenAI(api_key)
+        self.age_min = DEFAULT_AGE_MIN
+        self.age_max = DEFAULT_AGE_MAX
 
-        self.age_min = age_min
-        self.age_max = age_max
-        self.api = OpenAI()
+    async def generate_items(
+        self,
+        num: int,
+        prompt_filename: str,
+        extra: Optional[StoryInfo] = None,
+        process_response: Optional[
+            Callable[
+                [str],
+                Union[
+                    list[Title], list[Theme], list[Lesson], list[Author], list[Artist]
+                ],
+            ]
+        ] = None,
+        age_min: int = DEFAULT_AGE_MIN,
+        age_max: int = DEFAULT_AGE_MAX,
+    ) -> list[Item]:
+        """Generate a list of items based on the target age range, prompt file,
+        and processing function."""
 
-    @staticmethod
-    def choose_author_and_artist(
-        authors: list[Author], artists: list[Artist]
-    ) -> StoryInfo:
-        """Choose an author and artist for the story, ensuring that the author and
-        artist are the same if they appear in both lists, otherwise selecting a
-        random artist."""
+        info: StoryInfo = {
+            "age_min": age_min,
+            "age_max": age_max,
+            "num": num,
+            "plural": "(s)" if num > 1 else "",
+        }
 
-        author = random.choice(authors)
-        artist = next(
-            (artist for artist in artists if artist["artist"] == author["author"]),
-            random.choice(artists),
-        )
+        if extra is not None:
+            info.update(extra)
 
-        return {**author, **artist}  # type: ignore
+        prompt = Prompt.from_file(PROMPTS_PATH / prompt_filename).format_with(info)
+        messages = (user(prompt),)
 
-    async def choose_lesson_for_theme(self, themes: list[Theme], **kwargs) -> StoryInfo:
-        """Choose a lesson based on the provided theme or a random theme from the
-        list."""
+        print(f"Generating {prompt_filename.split('.')[0]} for {info}...")
+        response = await self.api.get_completion(messages)
 
-        theme = kwargs.get("story_theme") or random.choice(themes)
-        lessons = await self.generate_story_lessons(theme["story_theme"], **kwargs)
-        lesson = random.choice(lessons)
+        return process_response(response) if process_response is not None else response
 
-        return {**theme, "story_lesson": lesson}  # type: ignore
-
-    async def generate_story_themes(self, num: int = 3) -> list[Theme]:
+    async def generate_story_themes(
+        self,
+        num: int = 3,
+        age_min: int = DEFAULT_AGE_MIN,
+        age_max: int = DEFAULT_AGE_MAX,
+    ) -> list[Theme]:
         """Generate a list of story themes based on the target age range."""
 
-        info: StoryInfo = {"age_min": self.age_min, "age_max": self.age_max, "num": num}
-        prompt = Prompt.from_file(PROMPTS_PATH / "story_themes.md").format_with(info)
-        messages = (user(prompt),)
-        print(f"Generating themes for {info}...")
-        theme_response = await self.api.get_completion(messages)
-
-        return [
-            {
-                "emoji": (theme := i.lstrip("- ").rstrip(".").split(": "))[0],
-                "story_theme": theme[1].lower(),
-            }
-            for i in theme_response.splitlines()
-        ]
+        return await self.generate_items(
+            num,
+            "story_themes.md",
+            None,
+            lambda response: [
+                Theme(
+                    emoji=(theme := i.strip('"-. ').split(":"))[0].rstrip(),
+                    story_theme=theme[1].lower().lstrip(),
+                )
+                for i in response.splitlines()
+            ],
+            age_min,
+            age_max,
+        )
 
     async def generate_story_lessons(
-        self, story_theme: str, num: int = 10
+        self,
+        num: int = 3,
+        age_min: int = DEFAULT_AGE_MIN,
+        age_max: int = DEFAULT_AGE_MAX,
     ) -> list[Lesson]:
         """Generate a list of lessons for a specific story theme based on the target
         age range."""
 
-        info: StoryInfo = {
-            "age_min": self.age_min,
-            "age_max": self.age_max,
-            "num": num,
-            "story_theme": story_theme,
-        }
-        prompt = Prompt.from_file(PROMPTS_PATH / "story_lessons.md").format_with(info)
-        messages = (user(prompt),)
-        print(f"Generating lessons for {info}...")
-        lesson_response = await self.api.get_completion(messages)
+        return await self.generate_items(
+            num,
+            "story_lessons.md",
+            None,
+            lambda response: [
+                lesson.lower().strip("-. ") for lesson in response.splitlines()
+            ],
+            age_min,
+            age_max,
+        )
 
-        return [
-            lesson.lstrip("- ").strip().rstrip(".").lower()
-            for lesson in lesson_response.splitlines()
-        ]
-
-    async def generate_author_styles(self, num: int = 10) -> list[Author]:
+    async def generate_author_styles(
+        self,
+        num: int = 10,
+        age_min: int = DEFAULT_AGE_MIN,
+        age_max: int = DEFAULT_AGE_MAX,
+    ) -> list[Author]:
         """Generate a list of author styles based on the target age range."""
 
-        info: StoryInfo = {"age_min": self.age_min, "age_max": self.age_max, "num": num}
-        prompt = Prompt.from_file(PROMPTS_PATH / "author_styles.md").format_with(info)
-        messages = (user(prompt),)
-        print(f"Generating authors for {info}...")
-        author_response = await self.api.get_completion(messages)
+        return await self.generate_items(
+            num,
+            "author_styles.md",
+            None,
+            lambda response: [
+                Author(
+                    author_name=(author := i.strip('"-. ').split(":"))[0].rstrip(),
+                    author_style=author[1].lower().lstrip(),
+                )
+                for i in response.splitlines()
+            ],
+            age_min,
+            age_max,
+        )
 
-        return [
-            {
-                "author": (author := i.lstrip("- ").rstrip(".").split(": "))[0],
-                "author_style": author[1].lower(),
-            }
-            for i in author_response.splitlines()
-        ]
-
-    async def generate_artist_styles(self, num: int = 10) -> list[Artist]:
+    async def generate_artist_styles(
+        self,
+        num: int = 10,
+        age_min: int = DEFAULT_AGE_MIN,
+        age_max: int = DEFAULT_AGE_MAX,
+    ) -> list[Artist]:
         """Generate a list of artist styles based on the target age range."""
 
-        info: StoryInfo = {"age_min": self.age_min, "age_max": self.age_max, "num": num}
-        prompt = Prompt.from_file(PROMPTS_PATH / "artist_styles.md").format_with(info)
-        messages = (user(prompt),)
-        print(f"Generating artists for {info}...")
-        artist_response = await self.api.get_completion(messages)
+        return await self.generate_items(
+            num,
+            "artist_styles.md",
+            None,
+            lambda response: [
+                Artist(
+                    artist_name=(artist := i.strip('"-. ').split(":"))[0].rstrip(),
+                    artist_style=artist[1].lower().lstrip(),
+                )
+                for i in response.splitlines()
+            ],
+            age_min,
+            age_max,
+        )
 
-        return [
-            {
-                "artist": (artist := i.lstrip("- ").rstrip(".").split(": "))[0],
-                "artist_style": artist[1].lower(),
-            }
-            for i in artist_response.splitlines()
-        ]
-
-    async def generate_title(self, story: list[Page]) -> str:
+    async def generate_story_titles(
+        self,
+        story_theme: str,
+        story_lesson: str,
+        num: int = 1,
+        age_min: int = DEFAULT_AGE_MIN,
+        age_max: int = DEFAULT_AGE_MAX,
+    ) -> list[Title]:
         """Generate a title for the given story based on its content."""
 
-        story_paragraphs: str = "\n\n".join(page["content"] for page in story)
-        prompt = Prompt.from_file(PROMPTS_PATH / "title.md").format_with(
-            {"story": story_paragraphs}
+        return await self.generate_items(
+            num,
+            "title.md",
+            {"story_theme": story_theme, "story_lesson": story_lesson},
+            lambda response: [title.strip('"-. ') for title in response.splitlines()],
+            age_min,
+            age_max,
         )
-        messages = (user(prompt),)
-        print("Generating title for story...")
-        title_response = await self.api.get_completion(messages)
-
-        return title_response.strip()
-
-    async def generate_image(
-        self, story_paragraph: str, story_info: StoryInfo, **kwargs
-    ) -> str:
-        """Generate an image based on the story paragraph and story information."""
-
-        info: StoryInfo = {
-            **story_info,  # type: ignore
-            "story_paragraph": story_paragraph,
-        }
-
-        prompt = Prompt.from_file(PROMPTS_PATH / "dall_e_prompt.md").format_with(info)
-        messages = (user(prompt),)
-        print("Generating image prompt...")
-        prompt_response = await self.api.get_completion(messages)
-
-        print(f"Generating image for {prompt_response}...")
-        art = await self.api.get_image(prompt_response, **kwargs)
-        return art
-
-    async def generate_story(self, story_info: StoryInfo) -> Story:
-        """Generate a complete story based on the provided story information."""
-
-        story_info.update({"age_min": self.age_min, "age_max": self.age_max})
-        prompt = Prompt.from_file(PROMPTS_PATH / "story.md").format_with(story_info)
-        messages = (user(prompt),)
-        print(f"Generating story for {story_info}...")
-        story_response = await self.api.get_completion(messages)
-        story_paragraphs: list[Page] = [
-            {"content": paragraph.strip()} for paragraph in story_response.split("\n\n")
-        ]
-        story_title = await self.generate_title(story_paragraphs)
-
-        return {"title": story_title, "pages": story_paragraphs}
-
-    async def generate_pages(
-        self, story_info: StoryInfo, **kwargs
-    ) -> AsyncGenerator[str | Page, None]:
-        """Generate pages for a story, including images, based on the provided story
-        information."""
-
-        story = await self.generate_story(story_info)
-        yield story["title"]
-
-        for page in story["pages"]:
-            page["image"] = await self.generate_image(
-                page["content"], story_info, **kwargs
-            )
-            yield page

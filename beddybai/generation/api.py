@@ -5,10 +5,9 @@ from typing import AsyncGenerator, Iterable
 import openai
 import tiktoken
 
-from .types import config, Message, Role
+from .types import Message, Role
 
 MODEL = "gpt-3.5-turbo-0301"
-openai.api_key = config.OPENAI_API_KEY
 
 
 def guard_errors(func):
@@ -59,6 +58,9 @@ def user(content: str) -> Message:
 
 class OpenAI:
     """A class that provides methods for interacting with the OpenAI API."""
+
+    def __init__(self, api_key: str):
+        openai.api_key = api_key
 
     @staticmethod
     def message(role: Role, content: str) -> Message:
