@@ -1,7 +1,1 @@
-Please suggest a title for the following story:
-
-```
-{story}
-```
-
-**Only** provide the title. **Do not** apply any formatting to the title.
+Please suggest {num} title(s) for an age-appropriate story for {age_min}-{age_max} year-olds that is about '{story_theme}' and teaches a lesson about '{story_lesson}'.  **Only** provide the title{plural} in your response, formatted like: `- title` **Do not** include any other content or apply additional formatting.
