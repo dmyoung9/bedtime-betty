@@ -11,6 +11,7 @@ let minAge;
 let maxAge;
 
 let story_id;
+let current_theme;
 let current_story;
 
 let socket;
@@ -39,23 +40,27 @@ function createThemeButton(theme) {
   button.style.border = 'none';
   button.classList.add('btn', 'btn-primary', 'mr-2', 'mb-2', 'w-100', 'h-100', 'theme-btn');
 
-  button.addEventListener("click", async () => {
-    var body = JSON.stringify(theme);
-
-    var requestOptions = {
-      method: 'PATCH',
-      headers: headers,
-      body: body,
-      redirect: 'follow'
-    };
-
-    fetch(`http://192.168.1.212:5000/api/stories/${story_id}/theme`, requestOptions)
-      .then(response => response.text())
-      .then(result => current_story = result)
-      .catch(error => console.log('error', error));
+  button.addEventListener("click", () => {
+    current_theme = theme;
   });
 
   return button;
+}
+
+async function updateTheme(theme) {
+  var body = JSON.stringify(theme);
+
+  var requestOptions = {
+    method: 'PATCH',
+    headers: headers,
+    body: body,
+    redirect: 'follow'
+  };
+
+  await fetch(`http://192.168.1.212:5000/api/stories/${story_id}/theme`, requestOptions)
+    .then(response => response.json())
+    .then(result => current_story = result)
+    .catch(error => console.log('error', error));
 }
 
 function animateButton(button) {
@@ -118,14 +123,29 @@ document.addEventListener('DOMContentLoaded', async function () {
     return;
   }
 
-  story_id = await startStory(minAge, maxAge);
-
   refreshButton.addEventListener("click", function () {
     fetchFromWebSocket(themesWs, 3);
   });
 
-  goButton.addEventListener("click", function () {
-    chooseLesson(story_id);
+  goButton.addEventListener("click", async function () {
+    if (isThemeButtonSelected) {
+      story_id = await startStory(minAge, maxAge);
+      await updateTheme(current_theme);
+      console.log(current_story);
+      // chooseLesson(story_id);
+    }
+  });
+
+  goButton.addEventListener('focus', function () {
+    if (isThemeButtonSelected) {
+      goButton.disabled = false;
+    }
+  });
+
+  goButton.addEventListener('blur', function () {
+    if (!isThemeButtonSelected) {
+      goButton.disabled = true;
+    }
   });
 
   setupThemeButtonListeners();
@@ -170,16 +190,24 @@ function fetchFromWebSocket(url, num) {
   socket = getSocket(url, num);
 }
 
+var isThemeButtonSelected = false;
+
 function setupThemeButtonListeners() {
   themesContainer.addEventListener('focus', function (event) {
     if (event.target.tagName === 'BUTTON') {
+      isThemeButtonSelected = true;
       goButton.disabled = false;
     }
   }, true); // Use event capturing
 
   themesContainer.addEventListener('blur', function (event) {
     if (event.target.tagName === 'BUTTON') {
-      goButton.disabled = true;
+      setTimeout(function () {
+        if (!goButton.matches(':focus')) {
+          isThemeButtonSelected = false;
+          goButton.disabled = true;
+        }
+      }, 0);
     }
   }, true); // Use event capturing
 }
