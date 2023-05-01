@@ -1,157 +1,185 @@
+const spinner = document.getElementById('spinner');
+const themesContainer = document.getElementById('themesContainer');
+const buttons = document.getElementById('buttons');
+const refreshButton = document.getElementById('refreshButton');
+const goButton = document.getElementById('goButton');
 
-import { generate, stream } from './apiClient.js';
+const themesWs = `ws://192.168.1.212:5000/api/stories/themes/stream`;
 
-let ideas = [];
-let lessons = [];
-let authors = [];
-let artists = [];
-let API_KEY;
+let apiKey;
+let minAge;
+let maxAge;
 
-async function fetchData() {
-    const ideas = generate('ideas', { age: 9, num: 7 });
-    const lessons = generate('lessons', { age: 9, num: 7 });
-    const authors = generate('authors', { age: 9, num: 7 });
-    const artists = generate('artists', { age: 9, num: 7 });
+let story_id;
+let current_story;
 
-    const [initialIdeas,
-        initialLessons,
-        initialAuthors,
-        initialArtists] = await Promise.all([
-            ideas,
-            lessons,
-            authors,
-            artists]);
+let socket;
+let headers;
+
+// Add theme button to the DOM
+function addButton(theme) {
+  const col = createColumnElement();
+  const button = createThemeButton(theme);
+  col.appendChild(button);
+  themesContainer.appendChild(col);
+  animateButton(button);
 }
 
-function buildStoryFromIdea(age) {
-    if (ideas.length && lessons.length && authors.length && artists.length) {
-        const idea = ideas.shift();
-        const lesson = lessons[Math.floor(Math.random() * lessons.length)];
-        const author = authors[Math.floor(Math.random() * authors.length)];
-        const artist = artists[Math.floor(Math.random() * artists.length)];
+function createColumnElement() {
+  const col = document.createElement('div');
+  col.classList.add('col-12', 'col-md-4', 'mb-2', 'd-flex', 'justify-content-center');
+  return col;
+}
 
-        addStoryCard({ age, idea, lesson, author, artist });
+function createThemeButton(theme) {
+  const button = document.createElement('button');
+  button.innerHTML = `${theme.emoji}<br>${theme.story_theme}`;
+  button.style.backgroundColor = `${theme.color}`;
+  button.style.color = `${theme.text_color}`;
+  button.style.border = 'none';
+  button.classList.add('btn', 'btn-primary', 'mr-2', 'mb-2', 'w-100', 'h-100', 'theme-btn');
 
-        if (ideas.length) {
-            setTimeout(buildStoryFromIdea(age), 500);
-        }
+  button.addEventListener("click", async () => {
+    var body = JSON.stringify(theme);
+
+    var requestOptions = {
+      method: 'PATCH',
+      headers: headers,
+      body: body,
+      redirect: 'follow'
+    };
+
+    fetch(`http://192.168.1.212:5000/api/stories/${story_id}/theme`, requestOptions)
+      .then(response => response.text())
+      .then(result => current_story = result)
+      .catch(error => console.log('error', error));
+  });
+
+  return button;
+}
+
+function animateButton(button) {
+  setTimeout(() => {
+    button.classList.add("loaded");
+  }, 100);
+}
+
+// Establish a WebSocket connection
+function getSocket(url, num) {
+  let socket = new WebSocket(url);
+
+  socket.addEventListener("open", () => {
+    const body = { type: "request", data: { api_key: apiKey, age_min: minAge, age_max: maxAge, num: num } };
+    socket.send(JSON.stringify(body));
+  });
+
+  socket.addEventListener("message", (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.type === "end") {
+      console.log("Generator finished.");
+      hideSpinner();
+      return;
+    } else if (data.type === "theme") {
+      addButton(data.theme);
     }
+  });
+
+  socket.addEventListener("close", () => {
+    console.log("WebSocket connection closed.");
+  });
+
+  return socket;
 }
 
-function addImageToCard(image, card) {
-    let img = document.createElement('img');
-    img.src = image.url;
-    card.appendChild(img);
+// Spinner control functions
+function showSpinner() {
+  spinner.style.display = 'block';
+  buttons.style.display = 'none';
 }
 
-async function addStoryCard(storyDetails) {
-    let card = document.createElement('div');
-    card.classList.add('card');
-
-    // card.addEventListener('click', function () {
-    //     expandCard(card);
-    // });
-
-    let emoji = document.createElement('h1');
-    emoji.classList.add('card-emoji');
-    emoji.innerHTML = storyDetails.idea.emoji;
-
-    let image = document.createElement('div');
-    image.classList.add('card-image');
-
-    const storyTitle = await generate(API_KEY, "titles", { age: storyDetails.age, num: 1, story_author: storyDetails.author, story_lesson: storyDetails.lesson, story_idea: storyDetails.idea });
-    generate(API_KEY, "images", { num: 1, size: 512, story_artist: storyDetails.artist, story_description: { content: storyTitle } }, data => addImageToCard(data[0], image));
-
-    let title = document.createElement('h1');
-    title.classList.add('card-title');
-    title.innerHTML = storyTitle[0].title;
-
-    let divider = document.createElement('hr');
-    divider.classList.add('solid');
-
-    let cardContent = document.createElement('p');
-    cardContent.classList.add('card-content');
-    cardContent.innerHTML = `in the style of ${storyDetails.author.author_name}, with illustrations inspired by ${storyDetails.artist.artist_name}`;;
-
-    // for (let key in storyDetails) {
-    //     let item = document.createElement('div');
-    //     item.classList.add(key);
-    //     item.textContent = JSON.stringify(storyDetails[key]);
-    //     card.appendChild(item);
-    // }
-
-    card.appendChild(emoji);
-    card.appendChild(image);
-    card.appendChild(title);
-    card.appendChild(divider);
-    card.appendChild(cardContent);
-
-    const content = document.getElementById("content")
-    content.appendChild(card);
-
-    setTimeout(() => { card.classList.add('loaded') }, 100);
+function hideSpinner() {
+  spinner.style.display = 'none';
+  buttons.style.display = 'block';
 }
 
-async function streamData() {
-    const age = localStorage.getItem('maxAge') || '';
-    // const lesson_request = generate('lessons', request_params);
-    // const author_request = generate('authors', request_params);
-    // const artist_request = generate('artists', request_params);
+// Main function
+document.addEventListener('DOMContentLoaded', async function () {
+  apiKey = localStorage.getItem('apiKey') || '';
+  minAge = localStorage.getItem('minAge') || '';
+  maxAge = localStorage.getItem('maxAge') || '';
 
-    // [lessons, authors, artists] = await Promise.all([lesson_request, author_request, artist_request]);
+  headers = new Headers();
+  headers.append("OPENAI_API_KEY", apiKey);
+  headers.append("Content-Type", "application/json");
 
-    stream(API_KEY, 'lessons', { age: age, num: 7 }, data => lessons.push(data));
-    stream(API_KEY, 'authors', { age: age, num: 15 }, data => authors.push(data));
-    stream(API_KEY, 'artists', { age: age, num: 15 }, data => artists.push(data));
-    stream(API_KEY, 'ideas', { age: age, num: 10 }, data => {
-        ideas.push(data);
-        setTimeout(buildStoryFromIdea(age), 500);
-    });
-}
+  if (!apiKey) {
+    alert('Please enter your API key on the settings page.');
+    return;
+  }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    API_KEY = localStorage.getItem('apiKey') || '';
+  story_id = await startStory(minAge, maxAge);
 
-    document.querySelector('.overlay').addEventListener('click', function () {
-        // Shrink the card and hide the overlay
-        document.querySelectorAll('.card.expanded').forEach(card => {
-            collapseCard(card);
-        });
-        this.classList.remove('visible');
-    });
+  refreshButton.addEventListener("click", function () {
+    fetchFromWebSocket(themesWs, 3);
+  });
 
-    streamData();
+  goButton.addEventListener("click", function () {
+    chooseLesson(story_id);
+  });
+
+  setupThemeButtonListeners();
+  fetchFromWebSocket(themesWs, 5);
 });
 
-function expandCard(card) {
-    card.dataset.initialWidth = card.offsetWidth;
-    card.dataset.initialHeight = card.offsetHeight;
-    var rect = card.getBoundingClientRect();
-    card.dataset.initialLeft = rect.left + window.scrollX;
-    card.dataset.initialTop = rect.top + window.scrollY;
+async function startStory(minAge, maxAge) {
+  const body = {
+    "age_min": minAge,
+    "age_max": maxAge
+  };
 
-    // Calculate the target position and scale factor
-    var targetWidth = window.innerWidth * 0.8;  // Fill 80% of the screen width
-    var targetHeight = window.innerHeight * 0.8;  // Fill 80% of the screen height
-    var scaleX = targetWidth / card.offsetWidth;
-    var scaleY = targetHeight / card.offsetHeight;
-    var targetLeft = (window.innerWidth - targetWidth) / 2 + window.scrollX;
-    var targetTop = (window.innerHeight - targetHeight) / 2 + window.scrollY;
+  var requestOptions = {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(body),
+    redirect: 'follow'
+  };
 
-    // Apply the CSS properties
-    card.style.position = 'fixed';
-    card.style.top = `${targetTop}px`;
-    card.style.left = `${targetLeft}px`;
-    card.style.transform = `scale(${scaleX}, ${scaleY})`;
-    card.style.zIndex = '10';
+  let story_id;
 
-    document.querySelector('.overlay').classList.add('visible');
+  await fetch("http://127.0.0.1:5000/api/stories/start", requestOptions)
+    .then(response => response.json())
+    .then(data => story_id = data.story)
+    .catch(error => console.log('error', error));
+
+  return story_id;
 }
 
-function collapseCard(card) {
-    card.style.position = '';
-    card.style.top = '';
-    card.style.left = '';
-    card.style.transform = '';
-    card.style.zIndex = '';
+async function chooseLesson(story_id) {
+
+}
+
+// Fetch themes via WebSocket
+function fetchFromWebSocket(url, num) {
+  showSpinner();
+
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.close();
+  }
+
+  socket = getSocket(url, num);
+}
+
+function setupThemeButtonListeners() {
+  themesContainer.addEventListener('focus', function (event) {
+    if (event.target.tagName === 'BUTTON') {
+      goButton.disabled = false;
+    }
+  }, true); // Use event capturing
+
+  themesContainer.addEventListener('blur', function (event) {
+    if (event.target.tagName === 'BUTTON') {
+      goButton.disabled = true;
+    }
+  }, true); // Use event capturing
 }
