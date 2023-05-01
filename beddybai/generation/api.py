@@ -120,7 +120,6 @@ class OpenAI:
         messages: Iterable[Message],
         model: str = MODEL,
         temperature: float = 1,
-        separator: str = r"\n\n"
     ) -> AsyncGenerator[str, None]:
         """Streams the generated text in chunks based on the given messages."""
 
@@ -133,7 +132,7 @@ class OpenAI:
         buffer = ""
 
         # Regex pattern to identify the start of a new object
-        end_of_object_pattern = re.compile(separator)
+        end_of_object_pattern = re.compile(r"\n\n")
 
         async for chunk in response:
             buffer += chunk.get("content", "")
@@ -168,5 +167,3 @@ class OpenAI:
 
         content = image_response["data"][0][response_format]
         return base64.b64decode(content) if response_format == "b64_json" else content
-
-

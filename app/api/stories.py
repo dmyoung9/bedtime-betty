@@ -2,7 +2,6 @@ import asyncio
 import json
 
 from quart import Blueprint, request, jsonify, websocket
-from quart_cors import route_cors
 from beddybai.generation.api import OpenAI, user
 
 from beddybai.generation.generator import StoryGenerator
@@ -264,20 +263,14 @@ async def update_story_artist(story_id: int):
 
 
 @stories_blueprint.websocket("/themes/stream")
-async def stream_themes():
+async def stream():
     story_generator = None
 
     async def parse_and_emit_objects(**kwargs):
         async for theme in story_generator.generate_story_themes_streaming(**kwargs):
-            themes.append(theme)
-            response = {"type": "item", "data": theme}
-            print(f"->->-> {response}")
+            await websocket.send(json.dumps({"type": "theme", "theme": theme.__dict__}))
 
-            await websocket.send(json.dumps(response))
-
-        end = {"type": "end"}
-        print(f"->->-> {end}")
-        await websocket.send(json.dumps(end))
+        await websocket.send(json.dumps({"type": "end"}))
 
     while True:
         message = await websocket.receive()
@@ -287,104 +280,3 @@ async def stream_themes():
             req = data.get("data")
             story_generator = StoryGenerator(req.pop("api_key"))
             asyncio.create_task(parse_and_emit_objects(**req))
-
-
-@stories_blueprint.websocket("/lessons/stream")
-async def stream_lessons():
-    story_generator = None
-
-    async def parse_and_emit_objects(**kwargs):
-        async for lesson in story_generator.generate_story_lessons_streaming(**kwargs):
-            await websocket.send(
-                json.dumps({"type": "item", "data": {"story_lesson": lesson}})
-            )
-
-            await websocket.send(json.dumps(response))
-
-        end = {"type": "end"}
-        print(f"->->-> {end}")
-        await websocket.send(json.dumps(end))
-
-    while True:
-        message = await websocket.receive()
-        data = json.loads(message)
-        print(f"<-- {data}")
-
-        if data.get("type") == "request":
-            req = data.get("data")
-            story_generator = StoryGenerator(req.pop("api_key", ""))
-            asyncio.create_task(parse_and_emit_objects(**req))
-
-
-@stories_blueprint.websocket("/lessons/stream")
-async def stream_lessons():
-    story_generator = None
-
-    async def parse_and_emit_objects(**kwargs):
-        async for lesson in story_generator.generate_story_lessons_streaming(**kwargs):
-            await websocket.send(
-                json.dumps({"type": "item", "data": {"story_lesson": lesson}})
-            )
-
-        await websocket.send(json.dumps({"type": "end"}))
-
-    while True:
-        message = await websocket.receive()
-        data = json.loads(message)
-
-        if data.get("type") == "request":
-            req = data.get("data")
-            story_generator = StoryGenerator(req.pop("api_key", ""))
-            asyncio.create_task(parse_and_emit_objects(**req))
-
-
-@stories_blueprint.route("/next", methods=["POST"])
-# @route_cors(allow_origin=allowed_origins, allow_headers=allowed_headers)
-async def get_page():
-    openai_api_key = request.headers.get("Authorization").split(" ")[1]
-    story_generator = StoryGenerator(openai_api_key)
-
-    data = (await request.get_json()) or {}
-    data.pop("api_key", None)
-
-    previous_paragraphs = data.pop("previous_paragraphs", [])
-    return await story_generator.generate_story_paragraph(
-        info=data, previous_paragraphs=previous_paragraphs
-    )
-
-
-@stories_blueprint.websocket("/stream")
-async def stream_pages():
-    story_generator = None
-
-    async def parse_and_emit_objects(data):
-        async for paragraph in story_generator.generate_story_paragraphs_streaming(
-            data
-        ):
-            await websocket.send(json.dumps({"type": "item", "data": paragraph}))
-
-        await websocket.send(json.dumps({"type": "end"}))
-
-    while True:
-        message = await websocket.receive()
-        data = json.loads(message)
-
-        if data.get("type") == "request":
-            req = data.get("data")
-            story_generator = StoryGenerator(req.pop("api_key", ""))
-            asyncio.create_task(parse_and_emit_objects(req))
-
-
-@stories_blueprint.route("/image", methods=["POST"])
-# @route_cors(allow_origin=allowed_origins)
-async def get_image():
-    openai_api_key = request.headers.get("Authorization").split(" ")[1]
-    story_generator = StoryGenerator(openai_api_key)
-
-    data = (await request.get_json()) or {}
-    data.pop("api_key", None)
-
-    story_paragraph = data.pop("story_paragraph", "")
-    return await story_generator.generate_image(
-        story_paragraph=story_paragraph, story_info=data, size=512
-    )
