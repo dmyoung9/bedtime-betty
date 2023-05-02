@@ -263,12 +263,40 @@ async def update_story_artist(story_id: int):
 
 
 @stories_blueprint.websocket("/themes/stream")
-async def stream():
+async def stream_themes():
     story_generator = None
 
     async def parse_and_emit_objects(**kwargs):
-        async for theme in story_generator.generate_story_themes_streaming(**kwargs):
-            await websocket.send(json.dumps({"type": "theme", "theme": theme.__dict__}))
+        async for theme in story_generator.generate_story_themes_streaming(
+            previous_themes=themes, **kwargs
+        ):
+            themes.append(theme)
+            response = {"type": "theme", "theme": theme}
+            print(f"->->-> {response}")
+
+            await websocket.send(json.dumps(response))
+
+        end = {"type": "end"}
+        print(f"->->-> {end}")
+        await websocket.send(json.dumps(end))
+
+    while True:
+        message = await websocket.receive()
+        data = json.loads(message)
+
+        if data.get("type") == "request":
+            req = data.get("data")
+            story_generator = StoryGenerator(req.pop("api_key"))
+            asyncio.create_task(parse_and_emit_objects(**req))
+
+
+@stories_blueprint.websocket("/lessons/stream")
+async def stream_lessons():
+    story_generator = None
+
+    async def parse_and_emit_objects(**kwargs):
+        async for lesson in story_generator.generate_story_lessons_streaming(**kwargs):
+            await websocket.send(json.dumps({"type": "lesson", "lesson": lesson}))
 
         await websocket.send(json.dumps({"type": "end"}))
 
