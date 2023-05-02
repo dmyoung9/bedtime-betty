@@ -267,9 +267,7 @@ async def stream_themes():
     story_generator = None
 
     async def parse_and_emit_objects(**kwargs):
-        async for theme in story_generator.generate_story_themes_streaming(
-            previous_themes=themes, **kwargs
-        ):
+        async for theme in story_generator.generate_story_themes_streaming(**kwargs):
             themes.append(theme)
             response = {"type": "theme", "theme": theme}
             print(f"->->-> {response}")
