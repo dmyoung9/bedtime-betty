@@ -1,10 +1,11 @@
 const spinner = document.getElementById('spinner');
 const themesContainer = document.getElementById('themesContainer');
+const lessonsContainer = document.getElementById('lessonsContainer');
 const buttons = document.getElementById('buttons');
 const refreshButton = document.getElementById('refreshButton');
-const goButton = document.getElementById('goButton');
 
 const themesWs = `ws://192.168.1.212:5000/api/stories/themes/stream`;
+const lessonsWs = `ws://192.168.1.212:5000/api/stories/lessons/stream`;
 
 let apiKey;
 let minAge;
@@ -13,9 +14,17 @@ let maxAge;
 let story_id;
 let current_theme;
 let current_story;
+let current_lesson;
 
 let socket;
 let headers;
+
+var isLoading = false;
+var isThemeButtonSelected = false;
+var isLessonButtonSelected = false;
+
+const containerIds = ['themesContainer', 'lessonsContainer'];
+let currentContainerIndex = 0;
 
 // Add theme button to the DOM
 function addButton(theme) {
@@ -26,9 +35,18 @@ function addButton(theme) {
   animateButton(button);
 }
 
+// Add theme button to the DOM
+function addLesson(lesson) {
+  const col = createColumnElement();
+  const button = createLessonButton(lesson);
+  col.appendChild(button);
+  lessonsContainer.appendChild(col);
+  animateButton(button);
+}
+
 function createColumnElement() {
   const col = document.createElement('div');
-  col.classList.add('col-12', 'col-md-4', 'mb-2', 'd-flex', 'justify-content-center');
+  col.classList.add('col-12', 'col-md-4', 'mb-2', 'justify-content-center');
   return col;
 }
 
@@ -40,8 +58,24 @@ function createThemeButton(theme) {
   button.style.border = 'none';
   button.classList.add('btn', 'btn-primary', 'mr-2', 'mb-2', 'w-100', 'h-100', 'theme-btn');
 
+  button.addEventListener("click", async () => {
+    chooseTheme(theme);
+    fetchFromWebSocket(lessonsWs, 9);
+  });
+
+  return button;
+}
+
+function createLessonButton(lesson) {
+  const button = document.createElement('button');
+  button.innerHTML = `${lesson}`;
+  button.style.backgroundColor = `${current_theme.color}`;
+  button.style.color = `${current_theme.text_color}`;
+  button.style.border = 'none';
+  button.classList.add('btn', 'btn-primary', 'mr-2', 'mb-2', 'w-100', 'h-100', 'theme-btn');
+
   button.addEventListener("click", () => {
-    current_theme = theme;
+    current_lesson = lesson;
   });
 
   return button;
@@ -63,38 +97,26 @@ async function updateTheme(theme) {
     .catch(error => console.log('error', error));
 }
 
+async function updateLesson(lesson) {
+  var body = JSON.stringify({ story_lesson: lesson });
+
+  var requestOptions = {
+    method: 'PATCH',
+    headers: headers,
+    body: body,
+    redirect: 'follow'
+  };
+
+  await fetch(`http://192.168.1.212:5000/api/stories/${story_id}/lesson`, requestOptions)
+    .then(response => response.json())
+    .then(result => current_story = result)
+    .catch(error => console.log('error', error));
+}
+
 function animateButton(button) {
   setTimeout(() => {
     button.classList.add("loaded");
   }, 100);
-}
-
-// Establish a WebSocket connection
-function getSocket(url, num) {
-  let socket = new WebSocket(url);
-
-  socket.addEventListener("open", () => {
-    const body = { type: "request", data: { api_key: apiKey, age_min: minAge, age_max: maxAge, num: num } };
-    socket.send(JSON.stringify(body));
-  });
-
-  socket.addEventListener("message", (event) => {
-    const data = JSON.parse(event.data);
-
-    if (data.type === "end") {
-      console.log("Generator finished.");
-      hideSpinner();
-      return;
-    } else if (data.type === "theme") {
-      addButton(data.theme);
-    }
-  });
-
-  socket.addEventListener("close", () => {
-    console.log("WebSocket connection closed.");
-  });
-
-  return socket;
 }
 
 // Spinner control functions
@@ -106,6 +128,7 @@ function showSpinner() {
 function hideSpinner() {
   spinner.style.display = 'none';
   buttons.style.display = 'block';
+  isLoading = false;
 }
 
 // Main function
@@ -123,33 +146,22 @@ document.addEventListener('DOMContentLoaded', async function () {
     return;
   }
 
-  refreshButton.addEventListener("click", function () {
-    fetchFromWebSocket(themesWs, 3);
-  });
+  refreshButton.addEventListener("click", async function () {
+    const currentContainer = document.getElementById(containerIds[currentContainerIndex]);
 
-  goButton.addEventListener("click", async function () {
-    if (isThemeButtonSelected) {
-      story_id = await startStory(minAge, maxAge);
-      await updateTheme(current_theme);
-      console.log(current_story);
-      // chooseLesson(story_id);
+    switch (currentContainer.id) {
+      case 'themesContainer':
+        fetchFromWebSocket(themesWs, 3);
+        break;
+      case 'lessonsContainer':
+        fetchFromWebSocket(lessonsWs, 3);
+        break;
+      default:
+        console.error('Invalid container ID');
     }
   });
 
-  goButton.addEventListener('focus', function () {
-    if (isThemeButtonSelected) {
-      goButton.disabled = false;
-    }
-  });
-
-  goButton.addEventListener('blur', function () {
-    if (!isThemeButtonSelected) {
-      goButton.disabled = true;
-    }
-  });
-
-  setupThemeButtonListeners();
-  fetchFromWebSocket(themesWs, 5);
+  await fetchFromWebSocket(themesWs, 3);
 });
 
 async function startStory(minAge, maxAge) {
@@ -175,39 +187,64 @@ async function startStory(minAge, maxAge) {
   return story_id;
 }
 
-async function chooseLesson(story_id) {
+async function chooseTheme(theme) {
+  current_theme = theme;
+  story_id = await startStory(minAge, maxAge);
+  await updateTheme(theme);
 
+  themesContainer.classList.add("slide-left");
+  lessonsContainer.classList.remove("slide-right");
+  currentContainerIndex++;
+}
+
+async function chooseLesson(lesson) {
+  current_lesson = lesson;
+  await updateLesson(lesson);
+}
+
+function getSocket(url, num) {
+  let socket = new WebSocket(url);
+
+  socket.addEventListener("open", () => {
+    console.log("WebSocket connection opened.");
+    showSpinner();
+    isLoading = true;
+    const body = { type: "request", data: { api_key: apiKey, age_min: minAge, age_max: maxAge, num: num } };
+    socket.send(JSON.stringify(body));
+  });
+
+  socket.addEventListener("message", (event) => {
+    const data = JSON.parse(event.data);
+    console.log(data)
+
+    if (data.type === "end") {
+      hideSpinner();
+    } else if (data.type === "theme") {
+      addButton(data.theme);
+    } else if (data.type === "lesson") {
+      addLesson(data.lesson);
+    }
+  });
+
+  socket.addEventListener("close", () => {
+    if (isLoading) {
+      hideSpinner();
+    }
+
+    console.log("WebSocket connection closed.");
+  });
+
+  return socket;
+}
+
+async function safe_close_socket() {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    await socket.close();
+  }
 }
 
 // Fetch themes via WebSocket
-function fetchFromWebSocket(url, num) {
-  showSpinner();
-
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.close();
-  }
-
+async function fetchFromWebSocket(url, num) {
+  await safe_close_socket();
   socket = getSocket(url, num);
-}
-
-var isThemeButtonSelected = false;
-
-function setupThemeButtonListeners() {
-  themesContainer.addEventListener('focus', function (event) {
-    if (event.target.tagName === 'BUTTON') {
-      isThemeButtonSelected = true;
-      goButton.disabled = false;
-    }
-  }, true); // Use event capturing
-
-  themesContainer.addEventListener('blur', function (event) {
-    if (event.target.tagName === 'BUTTON') {
-      setTimeout(function () {
-        if (!goButton.matches(':focus')) {
-          isThemeButtonSelected = false;
-          goButton.disabled = true;
-        }
-      }, 0);
-    }
-  }, true); // Use event capturing
 }
