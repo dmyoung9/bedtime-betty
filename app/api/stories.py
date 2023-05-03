@@ -258,7 +258,7 @@ async def stream_themes():
     async def parse_and_emit_objects(**kwargs):
         async for theme in story_generator.generate_story_themes_streaming(**kwargs):
             themes.append(theme)
-            response = {"type": "theme", "theme": theme}
+            response = {"type": "item", "data": theme}
             print(f"->->-> {response}")
 
             await websocket.send(json.dumps(response))
@@ -283,7 +283,9 @@ async def stream_lessons():
 
     async def parse_and_emit_objects(**kwargs):
         async for lesson in story_generator.generate_story_lessons_streaming(**kwargs):
-            await websocket.send(json.dumps({"type": "lesson", "lesson": lesson}))
+            await websocket.send(
+                json.dumps({"type": "item", "data": {"story_lesson": lesson}})
+            )
 
             await websocket.send(json.dumps(response))
 
