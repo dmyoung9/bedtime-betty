@@ -8,8 +8,8 @@ class Wizard {
         this.apiKey = apiKey;
     }
 
-    addPage(sourceUrl, formatFunc = null, actionFunc = null) {
-        const page = new WizardPage(sourceUrl, this.apiKey, formatFunc, actionFunc);
+    addPage(sourceUrl, formatFunc = null) {
+        const page = new WizardPage(sourceUrl, this.apiKey, formatFunc);
         this.pages.push(page);
         this.container.appendChild(page.optionsContainer);
     }
@@ -35,13 +35,6 @@ class Wizard {
         }
     }
 
-    getSelectedOptions() {
-        var options = []
-        for (let page of this.pages) {
-            options.push(page.getSelectedOption());
-        }
-    }
-
     nextPage() {
         this.goToPage(this.currentPageIndex + 1);
         this.loadPage();
@@ -58,12 +51,11 @@ class Wizard {
 }
 
 class WizardPage {
-    constructor(sourceUrl, apiKey, formatFunc, actionFunc) {
+    constructor(sourceUrl, apiKey, formatFunc) {
         this.sourceUrl = sourceUrl;
         this.apiKey = apiKey
         this.options = [];
         this.formatFunc = formatFunc;
-        this.actionFunc = actionFunc;
         this.selectedOption = null;
 
         this.optionsRow = document.createElement('div');
@@ -117,7 +109,6 @@ class WizardPage {
 
         optionElement.addEventListener('click', () => {
             this.setSelectedOption(option);
-            this.actionFunc(option);
         });
 
         optionCol.appendChild(optionElement);
