@@ -42,6 +42,11 @@ async def settings():
     return await render_template("/settings.html")
 
 
+@quart_app.route("/stories", methods=["GET"])
+async def stories():
+    return await render_template("/stories.html")
+
+
 @quart_app.route("/settings", methods=["GET"])
 async def settings():
     return await render_template("/settings.html")
