@@ -33,7 +33,12 @@ quart_app = asyncio.run(create_app(Config))
 
 @quart_app.route("/", methods=["GET"])
 async def index():
-    return await render_template("/index.html")
+    return await render_template("/base.html")
+
+
+@quart_app.route("/stories", methods=["GET"])
+async def stories():
+    return await render_template("/stories.html")
 
 
 @quart_app.route("/settings", methods=["GET"])

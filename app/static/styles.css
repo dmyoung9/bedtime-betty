@@ -1,5 +1,9 @@
 /* Containers */
 
+body {
+    padding-top: 70px;
+}
+
 .wizard-container {
     display: flex;
     overflow: hidden;
