@@ -248,6 +248,30 @@ class StoryGenerator:
             age_max,
         )
 
+    async def generate_image(
+        self, story_paragraph: str, story_info: StoryInfo, **kwargs
+    ) -> str:
+        """Generate an image based on the story paragraph and story information."""
+
+        info: StoryInfo = {
+            **story_info,  # type: ignore
+            "story_paragraph": story_paragraph,
+        }
+
+        prompt = Prompt.from_file(PROMPTS_PATH / "dall_e_prompt.md").format_with(info)
+        bedtime_betty = str(Prompt.from_file(PROMPTS_PATH / "bedtime_betty.md"))
+
+        context = [
+            system(bedtime_betty),
+            user(prompt),
+        ]
+        print("Generating image prompt...")
+        prompt_response = await self.api.get_completion(context)
+
+        print(f"Generating image for {prompt_response}...")
+        art = await self.api.get_image(prompt_response, **kwargs)
+        return art
+
     async def generate_story_paragraph(
         self,
         info: StoryInfo,
@@ -291,3 +315,16 @@ class StoryGenerator:
         context.append(user(paragraph_prompt.format_with(paragraph_info)))
 
         return (await self.api.get_completion(context)).strip()
+
+    async def generate_story_paragraphs_streaming(
+        self,
+        info: StoryInfo,
+        total_paragraphs: int = 7,
+    ):
+        previous_paragraphs = []
+        for _ in range(total_paragraphs):
+            paragraph = await self.generate_story_paragraph(
+                info, previous_paragraphs, total_paragraphs
+            )
+            previous_paragraphs.append(paragraph)
+            yield paragraph

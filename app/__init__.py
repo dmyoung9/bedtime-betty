@@ -9,8 +9,7 @@ from .config import Config
 
 
 CORS_CONFIG = {
-    "allow_origin": ["http://bedtime-betty.com", "http://www.bedtime-betty.com"],
-    "allow_headers": ["Content-Type", "Authorization"],
+    "allow_origin": ["*"],
 }
 
 

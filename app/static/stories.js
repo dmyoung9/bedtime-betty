@@ -13,8 +13,6 @@ var chosenArtist = null;
 var chosenTitle = null;
 var paragraphs = [];
 
-const base_api_url = `${window.config.SSL_ENABLED == "True" ? 'https' : 'http'}://${window.config.BASE_API_URL}`;
-const ws_api_url = `${window.config.SSL_ENABLED == "True" ? 'wss' : 'ws'}://${window.config.BASE_API_URL}`;
 const totalParagraphs = 7;
 
 function showSpinner(element, labelElement = null, label = null) {
@@ -108,16 +106,8 @@ function formatThemeButton(button, theme) {
     return button
 }
 
-function formatTitleButton(button, title) {
-    button.innerHTML = `This story is called:<br>"${title}"`;
-    button.style.backgroundColor = `${chosenTheme.color}`;
-    button.style.color = `${getContrastTextColor(chosenTheme.color)}`;
-
-    return button
-}
-
-function formatLessonButton(button, lesson) {
-    button.innerHTML = `it's about '${lesson}'`;
+function unformattedButton(button, lesson) {
+    button.innerHTML = `${lesson}`;
     button.style.backgroundColor = `${chosenTheme.color}`;
     button.style.color = `${getContrastTextColor(chosenTheme.color)}`;
     // button.style.fontFamily = `${chosenTheme.font}`;
@@ -135,32 +125,12 @@ function formatAuthorButton(button, author) {
 }
 
 function formatArtistButton(button, artist) {
-    button.innerHTML = `with illustrations inspired by ${artist.artist_name}<br>(${artist.artist_style})`;
+    button.innerHTML = `illustrated like ${artist.artist_name}<br>(${artist.artist_style})`;
     button.style.backgroundColor = `${chosenTheme.color}`;
     button.style.color = `${getContrastTextColor(chosenTheme.color)}`;
     // button.style.fontFamily = `${chosenTheme.font}`;
 
     return button
-}
-
-async function formatPage(element, page) {
-    let imgSrc = await postToUrl(`${base_api_url}/api/stories/image`, null, requestData = { story_paragraph: page, ...buildStoryInfo() }, json = false);
-
-    const div = document.createElement('div');
-    div.classList.add('col-12', 'text-center', 'story-text');
-
-    const img = document.createElement('img');
-    img.src = imgSrc;
-    img.classList.add('img-fluid', 'rounded', 'mx-auto', 'd-block');
-
-    const text = document.createElement('p');
-    text.innerHTML = page;
-    text.classList.add('mt-3', 'mb-3', 'bg-body-tertiary', 'rounded', 'p-2');
-
-    div.appendChild(img);
-    div.appendChild(text);
-
-    return div
 }
 
 function buildRequestData(num) {
@@ -170,7 +140,7 @@ function buildRequestData(num) {
     return { age_min: minAge, age_max: maxAge, num: num };
 }
 
-function buildStoryInfo(totalParagraphs = 7) {
+function buildStoryInfo(totalParagraphs) {
     const minAge = localStorage.getItem('minAge') || 2;
     const maxAge = localStorage.getItem('maxAge') || 7;
 
@@ -178,7 +148,7 @@ function buildStoryInfo(totalParagraphs = 7) {
     return storyInfo;
 }
 
-async function fetchOptionsFromWebsocket(url, label, formatFunc = null, actionFunc = null, num = 7, data = null, end = false, spinner = true) {
+async function fetchOptionsFromWebsocket(url, label, formatFunc = null, actionFunc = null, num = 7, data = null, end = false) {
     const apiKey = localStorage.getItem('apiKey') || '';
     const requestData = data || buildRequestData(num);
     requestData['api_key'] = apiKey;
@@ -188,9 +158,7 @@ async function fetchOptionsFromWebsocket(url, label, formatFunc = null, actionFu
 
         socket.addEventListener('open', () => {
             console.log('WebSocket connection opened.');
-            if (spinner) {
-                showSpinner("loadingSpinner", "loadingSpinnerLabel", label);
-            }
+            showSpinner("loadingSpinner", "loadingSpinnerLabel", label);
             var request_msg = { type: 'request', data: requestData }
             socket.send(JSON.stringify(request_msg));
         });
@@ -223,7 +191,7 @@ async function postToUrl(url, num, requestData = null, json = true) {
     const apiKey = localStorage.getItem('apiKey') || '';
     const headers = new Headers()
     headers.append("Content-Type", "application/json");
-    headers.append("Authorization", `Bearer ${apiKey}`);
+    headers.append("OPENAI_API_KEY", apiKey);
 
     const data = requestData || buildRequestData(num)
 
@@ -255,26 +223,26 @@ async function buildStoryDetails(theme, idx) {
     await slideOutOptions(-1);
 
     showSpinner("loadingSpinner", "loadingSpinnerLabel", "Ok, let me think about it...");
-    let lessons = await postToUrl(`${base_api_url}/api/stories/lessons`, num = 10);
+    let lessons = await postToUrl("http://192.168.1.212:5000/api/stories/lessons", num = 10);
 
     const randomLesson = lessons[Math.floor(Math.random() * lessons.length)];
     chosenLesson = randomLesson;
+    // addOption(randomLesson, formatLessonButton, null, true);
     console.log(randomLesson);
 
     let titleRequestData = buildRequestData(5);
     titleRequestData['story_theme'] = chosenTheme.story_theme;
     titleRequestData['story_lesson'] = chosenLesson;
 
-    let titles = await postToUrl(`${base_api_url}/api/stories/titles`, num = 5, requestData = titleRequestData);
+    let titles = await postToUrl("http://192.168.1.212:5000/api/stories/titles", num = 5, requestData = titleRequestData);
     const randomTitle = titles[Math.floor(Math.random() * titles.length)];
     chosenTitle = randomTitle;
 
     showSpinner("loadingSpinner", "loadingSpinnerLabel", "Oh, I've got a good one!");
-    addOption(randomTitle, formatTitleButton, null, true);
-    addOption(randomLesson, formatLessonButton, null, true);
+    addOption(randomTitle, unformattedButton, null, true);
     console.log(randomTitle);
 
-    let authors = await postToUrl(`${base_api_url}/api/stories/authors`, num = 5);
+    let authors = await postToUrl("http://192.168.1.212:5000/api/stories/authors", num = 5);
     const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
     chosenAuthor = randomAuthor;
     showSpinner("loadingSpinner", "loadingSpinnerLabel", "Yep, that should do nicely...");
@@ -282,7 +250,7 @@ async function buildStoryDetails(theme, idx) {
     console.log(randomAuthor);
 
     showSpinner("loadingSpinner", "loadingSpinnerLabel", "One more thing...");
-    let artists = await postToUrl(`${base_api_url}/api/stories/artists`, num = 5);
+    let artists = await postToUrl("http://192.168.1.212:5000/api/stories/artists", num = 5);
     const randomArtist = artists[Math.floor(Math.random() * artists.length)];
     chosenArtist = randomArtist;
     addOption(randomArtist, formatArtistButton, null, true);
@@ -291,7 +259,6 @@ async function buildStoryDetails(theme, idx) {
     setTimeout(() => { hideSpinner("loadingSpinner"); }, 50);
 
     readButton.classList.add('loaded');
-    nextButton.classList.add('loaded');
 }
 
 function getContrastTextColor(hexColor) {
@@ -318,27 +285,17 @@ function getContrastTextColor(hexColor) {
     return brightness > 128 ? 'black' : 'white';
 }
 
-async function getThemes() {
-    nextButton.classList.remove('loaded');
-    readButton.classList.remove('loaded');
-    await fetchOptionsFromWebsocket(`${ws_api_url}/api/stories/themes/stream`, "Let's come up with some ideas...", formatThemeButton, buildStoryDetails);
-}
-
 
 async function getNextPage() {
-    hideSpinner("loadingSpinner");
-    // slideOutOptions(-1);
+    showSpinner("nextSpinner", null);
+    slideOutOptions(-1);
 
     const storyInfo = buildStoryInfo(totalParagraphs);
     console.log(storyInfo);
 
-    showSpinner("nextSpinner", null);
-    readButton.classList.remove('loaded')
-    nextButton.classList.remove('loaded')
-    await fetchOptionsFromWebsocket(`${ws_api_url}/api/stories/stream`, null, formatPage, null, null, storyInfo, true, false);
+    await fetchOptionsFromWebsocket('ws://192.168.1.212:5000/api/stories/stream', null, unformattedButton, null, null, storyInfo, true);
 
-    hideSpinner("nextSpinner");
-    // nextButton.classList.add('loaded')
+    hideSpinner("loadingSpinner");
     // for (let i = 0; i < totalParagraphs; i++) {
 
     // }
@@ -346,6 +303,8 @@ async function getNextPage() {
     // const paragraph = await postToUrl("http://192.168.1.212:5000/api/stories/next", null, storyInfo, false);
     // paragraphs.push(paragraph);
     // addParagraph(paragraph);
+
+
 }
 
 
@@ -354,22 +313,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         getNextPage();
     });
 
-    nextButton.addEventListener("click", async () => {
-        showSpinner("loadingSpinner", "loadingSpinnerLabel", "In a hurry, are we?");
-        for (let idx in sockets) {
-            await sockets[idx].close();
-        }
-        await slideOutOptions(-1);
-
-        chosenTheme = null;
-        chosenLesson = null;
-        chosenAuthor = null;
-        chosenArtist = null;
-        chosenTitle = null;
-        paragraphs = [];
-
-        getThemes();
-    });
-
-    getThemes();
+    await fetchOptionsFromWebsocket('ws://192.168.1.212:5000/api/stories/themes/stream', "Let's come up with some ideas...", formatThemeButton, buildStoryDetails);
 });

@@ -281,10 +281,11 @@ async def stream_themes():
     while True:
         message = await websocket.receive()
         data = json.loads(message)
+        print(f"<-- {data}")
 
         if data.get("type") == "request":
             req = data.get("data")
-            story_generator = StoryGenerator(req.pop("api_key"))
+            story_generator = StoryGenerator(req.pop("api_key", ""))
             asyncio.create_task(parse_and_emit_objects(**req))
 
 
@@ -306,5 +307,41 @@ async def stream_lessons():
 
         if data.get("type") == "request":
             req = data.get("data")
-            story_generator = StoryGenerator(req.pop("api_key"))
+            story_generator = StoryGenerator(req.pop("api_key", ""))
             asyncio.create_task(parse_and_emit_objects(**req))
+
+
+@stories_blueprint.route("/next", methods=["POST"])
+async def get_page():
+    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    story_generator = StoryGenerator(openai_api_key)
+
+    data = (await request.get_json()) or {}
+    data.pop("api_key", None)
+
+    previous_paragraphs = data.pop("previous_paragraphs", [])
+    return await story_generator.generate_story_paragraph(
+        info=data, previous_paragraphs=previous_paragraphs
+    )
+
+
+@stories_blueprint.websocket("/stream")
+async def stream_pages():
+    story_generator = None
+
+    async def parse_and_emit_objects(data):
+        async for paragraph in story_generator.generate_story_paragraphs_streaming(
+            data
+        ):
+            await websocket.send(json.dumps({"type": "item", "data": paragraph}))
+
+        await websocket.send(json.dumps({"type": "end"}))
+
+    while True:
+        message = await websocket.receive()
+        data = json.loads(message)
+
+        if data.get("type") == "request":
+            req = data.get("data")
+            story_generator = StoryGenerator(req.pop("api_key", ""))
+            asyncio.create_task(parse_and_emit_objects(req))

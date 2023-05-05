@@ -4,6 +4,12 @@ body {
     padding-top: 70px;
 }
 
+.container {
+    /*transition: flex 0.5s ease-in-out, max-width 0.5s ease-in-out;
+    */
+    transition: flex 0.75s cubic-bezier(0.23, 1, 0.32, 1), max-width 0.75s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 .wizard-container {
     display: flex;
     overflow: hidden;
@@ -27,7 +33,7 @@ body {
     font-family: 'Courgette', sans-serif;
     border: none;
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(-20px);
     transition: opacity 0.5s, transform 0.3s;
     width: 100%;
     height: 100%;
@@ -38,10 +44,30 @@ body {
     transform: translateY(0);
 }
 
-.action-button {
+.option-btn.disappear {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.action-btn {
     font-size: 1.25rem;
     font-family: 'Roboto', sans-serif;
     width: 100%;
     height: 100%;
     border: none;
+    scale: 0%;
+    transition: scale 0.2s ease-in;
+}
+
+.action-btn.loaded {
+    scale: 100%;
+}
+
+.invisible {
+    display: none;
+}
+
+.slide-left {
+    transition: transform 0.3s ease-out;
+    transform: translateX(-100%);
 }
