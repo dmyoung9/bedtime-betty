@@ -13,12 +13,20 @@ class Theme(db.Model):
     id: int = db.Column(db.Integer, primary_key=True)
     emoji: str = db.Column(db.String)
     story_theme: str = db.Column(db.String)
+    color: str = db.Column(db.String)
+    text_color: str = db.Column(db.String)
     __table_args__ = (
         db.UniqueConstraint("emoji", "story_theme", name="unique_theme_constraint"),
     )
 
     def to_json(self):
-        return {"id": self.id, "emoji": self.emoji, "story_theme": self.story_theme}
+        return {
+            "id": self.id,
+            "emoji": self.emoji,
+            "story_theme": self.story_theme,
+            "color": self.color,
+            "text_color": self.text_color,
+        }
 
 
 class Lesson(db.Model):

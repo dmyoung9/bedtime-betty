@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}BedtimeBetty Settings{% endblock %}
+
+{% block header %}Settings{% endblock %}
+
+{% block content %}
+  <form id="settingsForm">
+    <div class="form-group">
+      <label for="prefApiKey" class="form-label">API Key</label>
+      <input type="text" id="prefApiKey" class="form-control">
+    </div>
+    <div class="form-group">
+      <label for="childAge" class="form-label">Age Range</label>
+      <div id="childAge" class="slider"></div>
+      <span id="childAgeDisplay">0 - 18</span> years
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Save</button>
+  </form>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='settings.js') }}"></script>
+{% endblock %}

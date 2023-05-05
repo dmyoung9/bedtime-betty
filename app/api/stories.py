@@ -1,4 +1,8 @@
-from quart import Blueprint, request, jsonify
+import asyncio
+import json
+
+from quart import Blueprint, request, jsonify, websocket
+from beddybai.generation.api import OpenAI, user
 
 from beddybai.generation.generator import StoryGenerator
 
@@ -11,6 +15,7 @@ stories_blueprint = Blueprint("stories", __name__)
 @stories_blueprint.route("/start", methods=["POST"])
 async def start_new_story():
     data = await request.get_json()
+    data.pop("api_key", None)
 
     if not all(((age_min := data.get("age_min")), (age_max := data.get("age_max")))):
         return (
@@ -35,6 +40,7 @@ async def generate_theme_suggestions():
     story_generator = StoryGenerator(openai_api_key)
 
     data = await request.get_json()
+    data.pop("api_key", None)
 
     return await story_generator.generate_story_themes(**data)
 
@@ -45,6 +51,7 @@ async def generate_lesson_suggestions():
     story_generator = StoryGenerator(openai_api_key)
 
     data = await request.get_json()
+    data.pop("api_key", None)
 
     return await story_generator.generate_story_lessons(**(data or {}))
 
@@ -55,6 +62,7 @@ async def generate_title_suggestions():
     story_generator = StoryGenerator(openai_api_key)
 
     data = await request.get_json()
+    data.pop("api_key", None)
 
     return await story_generator.generate_story_titles(**(data or {}))
 
@@ -65,6 +73,7 @@ async def generate_author_suggestions():
     story_generator = StoryGenerator(openai_api_key)
 
     data = await request.get_json()
+    data.pop("api_key", None)
 
     return await story_generator.generate_author_styles(**(data or {}))
 
@@ -75,6 +84,7 @@ async def generate_artist_suggestions():
     story_generator = StoryGenerator(openai_api_key)
 
     data = await request.get_json()
+    data.pop("api_key", None)
 
     return await story_generator.generate_artist_styles(**(data or {}))
 
@@ -82,6 +92,7 @@ async def generate_artist_suggestions():
 @stories_blueprint.route("/<int:story_id>/theme", methods=["PATCH"])
 async def update_story_theme(story_id: int):
     data = (await request.get_json()) or {}
+    data.pop("api_key", None)
 
     if not all(
         ((emoji := data.get("emoji")), (story_theme := data.get("story_theme")))
@@ -112,6 +123,7 @@ async def update_story_theme(story_id: int):
 @stories_blueprint.route("/<int:story_id>/title", methods=["PATCH"])
 async def update_story_title(story_id: int):
     data = (await request.get_json()) or {}
+    data.pop("api_key", None)
 
     if not (story_title := data.get("story_title")):
         return (
@@ -140,6 +152,7 @@ async def update_story_title(story_id: int):
 @stories_blueprint.route("/<int:story_id>/lesson", methods=["PATCH"])
 async def update_story_lesson(story_id: int):
     data = (await request.get_json()) or {}
+    data.pop("api_key", None)
 
     if not (story_lesson := data.get("story_lesson")):
         return (
@@ -168,6 +181,7 @@ async def update_story_lesson(story_id: int):
 @stories_blueprint.route("/<int:story_id>/author", methods=["PATCH"])
 async def update_story_author(story_id: int):
     data = (await request.get_json()) or {}
+    data.pop("api_key", None)
 
     if not all(
         (
@@ -203,6 +217,7 @@ async def update_story_author(story_id: int):
 @stories_blueprint.route("/<int:story_id>/artist", methods=["PATCH"])
 async def update_story_artist(story_id: int):
     data = (await request.get_json()) or {}
+    data.pop("api_key", None)
 
     if not all(
         (
@@ -233,3 +248,86 @@ async def update_story_artist(story_id: int):
 
     db.session.commit()
     return story.to_json()
+
+
+@stories_blueprint.websocket("/themes/stream")
+async def stream():
+    story_generator = None
+
+    async def parse_and_emit_objects(**kwargs):
+        async for theme in story_generator.generate_story_themes_streaming(**kwargs):
+            await websocket.send(json.dumps({"type": "theme", "theme": theme.__dict__}))
+
+            await websocket.send(json.dumps(response))
+
+        end = {"type": "end"}
+        print(f"->->-> {end}")
+        await websocket.send(json.dumps(end))
+
+    while True:
+        message = await websocket.receive()
+        data = json.loads(message)
+        print(f"<-- {data}")
+
+        if data.get("type") == "request":
+            req = data.get("data")
+            story_generator = StoryGenerator(req.pop("api_key", ""))
+            asyncio.create_task(parse_and_emit_objects(**req))
+
+
+@stories_blueprint.websocket("/lessons/stream")
+async def stream_lessons():
+    story_generator = None
+
+    async def parse_and_emit_objects(**kwargs):
+        async for lesson in story_generator.generate_story_lessons_streaming(**kwargs):
+            await websocket.send(
+                json.dumps({"type": "item", "data": {"story_lesson": lesson}})
+            )
+
+        await websocket.send(json.dumps({"type": "end"}))
+
+    while True:
+        message = await websocket.receive()
+        data = json.loads(message)
+
+        if data.get("type") == "request":
+            req = data.get("data")
+            story_generator = StoryGenerator(req.pop("api_key", ""))
+            asyncio.create_task(parse_and_emit_objects(**req))
+
+
+@stories_blueprint.route("/next", methods=["POST"])
+async def get_page():
+    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    story_generator = StoryGenerator(openai_api_key)
+
+    data = (await request.get_json()) or {}
+    data.pop("api_key", None)
+
+    previous_paragraphs = data.pop("previous_paragraphs", [])
+    return await story_generator.generate_story_paragraph(
+        info=data, previous_paragraphs=previous_paragraphs
+    )
+
+
+@stories_blueprint.websocket("/stream")
+async def stream_pages():
+    story_generator = None
+
+    async def parse_and_emit_objects(data):
+        async for paragraph in story_generator.generate_story_paragraphs_streaming(
+            data
+        ):
+            await websocket.send(json.dumps({"type": "item", "data": paragraph}))
+
+        await websocket.send(json.dumps({"type": "end"}))
+
+    while True:
+        message = await websocket.receive()
+        data = json.loads(message)
+
+        if data.get("type") == "request":
+            req = data.get("data")
+            story_generator = StoryGenerator(req.pop("api_key", ""))
+            asyncio.create_task(parse_and_emit_objects(req))

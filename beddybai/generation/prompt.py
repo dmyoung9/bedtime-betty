@@ -17,7 +17,7 @@ class Prompt:
     def from_file(path: str | Path) -> Prompt:
         """Create a Prompt instance by reading the prompt text from a file."""
 
-        prompt = Path(path).read_text()
+        prompt = Path(path).read_text(encoding="utf-8")
         return Prompt(prompt)
 
     def format_with(self, info: StoryInfo):

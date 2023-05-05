@@ -9,10 +9,7 @@ from .config import Config
 
 
 CORS_CONFIG = {
-    "allow_origin": "*",
-    "allow_headers": "*",
-    "allow_methods": "*",
-    "allow_credentials": False,
+    "allow_origin": ["*"],
 }
 
 
@@ -39,6 +36,6 @@ async def index():
     return await render_template("/index.html")
 
 
-@quart_app.route("/preferences", methods=["GET"])
-async def preferences():
-    return await render_template("/preferences.html")
+@quart_app.route("/settings", methods=["GET"])
+async def settings():
+    return await render_template("/settings.html")

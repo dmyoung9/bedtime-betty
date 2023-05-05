@@ -23,17 +23,25 @@ class Artist:
     artist_name: str
     artist_style: str
 
+    def __str__(self):
+        return f"{self.artist_name} ({self.artist_style})"
+
 
 @dataclass
 class Author:
     author_name: str
     author_style: str
 
+    def __str__(self):
+        return f"{self.author_name} ({self.author_style})"
+
 
 @dataclass
 class Theme:
     emoji: str
     story_theme: str
+    color: str
+    text_color: str
 
     def __str__(self):
         return f"{self.emoji} - {self.story_theme}"

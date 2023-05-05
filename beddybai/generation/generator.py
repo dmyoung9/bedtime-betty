@@ -1,13 +1,16 @@
 import os
 from pathlib import Path
-from typing import Callable, Optional, Union
+from typing import Callable, Iterable, Optional, Union
 
-from .api import OpenAI, user
+import yaml
+
+from .api import OpenAI, assistant, system, user
 from .prompt import Prompt
 from .types import (
     Artist,
     Author,
     Item,
+    Message,
     StoryInfo,
     Theme,
     Lesson,
@@ -59,19 +62,57 @@ class StoryGenerator:
             "age_min": age_min,
             "age_max": age_max,
             "num": num,
-            "plural": "(s)" if num > 1 else "",
+            "plural": "s" if num > 1 else "",
         }
 
         if extra is not None:
             info.update(extra)
 
         prompt = Prompt.from_file(PROMPTS_PATH / prompt_filename).format_with(info)
-        messages = (user(prompt),)
+        bedtime_betty = str(Prompt.from_file(PROMPTS_PATH / "bedtime_betty.md"))
+        messages = (system(bedtime_betty), user(prompt))
 
         print(f"Generating {prompt_filename.split('.')[0]} for {info}...")
         response = await self.api.get_completion(messages)
 
         return process_response(response) if process_response is not None else response
+
+    async def generate_items_streaming(
+        self,
+        num: int,
+        prompt_filename: str,
+        extra: Optional[StoryInfo] = None,
+        process_response: Optional[
+            Callable[
+                [str],
+                Union[
+                    list[Title], list[Theme], list[Lesson], list[Author], list[Artist]
+                ],
+            ]
+        ] = None,
+        age_min: int = DEFAULT_AGE_MIN,
+        age_max: int = DEFAULT_AGE_MAX,
+    ) -> list[Item]:
+        """Generate a list of items based on the target age range, prompt file,
+        and processing function."""
+
+        info: StoryInfo = {
+            "age_min": age_min,
+            "age_max": age_max,
+            "num": num,
+            "plural": "s" if num > 1 else "",
+        }
+
+        if extra is not None:
+            info.update(extra)
+
+        prompt = Prompt.from_file(PROMPTS_PATH / prompt_filename).format_with(info)
+        bedtime_betty = str(Prompt.from_file(PROMPTS_PATH / "bedtime_betty.md"))
+        messages = (system(bedtime_betty), user(prompt))
+
+        print(f"Generating {prompt_filename.split('.')[0]} for {info}...")
+        async for item in self.api.stream_yaml(messages):
+            yield item
 
     async def generate_story_themes(
         self,
@@ -86,15 +127,31 @@ class StoryGenerator:
             "story_themes.md",
             None,
             lambda response: [
-                Theme(
-                    emoji=(theme := i.strip('"-. ').split(":"))[0].rstrip(),
-                    story_theme=theme[1].lower().lstrip(),
-                )
-                for i in response.splitlines()
+                Theme(**obj) for obj in yaml.safe_load(response.strip("`"))
             ],
             age_min,
             age_max,
         )
+
+    async def generate_story_themes_streaming(
+        self,
+        num: int = 3,
+        age_min: int = DEFAULT_AGE_MIN,
+        age_max: int = DEFAULT_AGE_MAX,
+    ) -> list[Theme]:
+        """Generate a list of story themes based on the target age range."""
+
+        async for theme in self.generate_items_streaming(
+            num,
+            "story_themes.md",
+            None,
+            lambda response: [
+                Theme(**obj) for obj in yaml.safe_load(response.strip("`"))
+            ],
+            age_min,
+            age_max,
+        ):
+            yield Theme(**theme)
 
     async def generate_story_lessons(
         self,
@@ -169,6 +226,7 @@ class StoryGenerator:
         num: int = 1,
         age_min: int = DEFAULT_AGE_MIN,
         age_max: int = DEFAULT_AGE_MAX,
+        **kwargs,
     ) -> list[Title]:
         """Generate a title for the given story based on its content."""
 
@@ -180,3 +238,84 @@ class StoryGenerator:
             age_min,
             age_max,
         )
+
+    async def generate_image(
+        self, story_paragraph: str, story_info: StoryInfo, **kwargs
+    ) -> str:
+        """Generate an image based on the story paragraph and story information."""
+
+        info: StoryInfo = {
+            **story_info,  # type: ignore
+            "story_paragraph": story_paragraph,
+        }
+
+        prompt = Prompt.from_file(PROMPTS_PATH / "dall_e_prompt.md").format_with(info)
+        bedtime_betty = str(Prompt.from_file(PROMPTS_PATH / "bedtime_betty.md"))
+
+        context = [
+            system(bedtime_betty),
+            user(prompt),
+        ]
+        print("Generating image prompt...")
+        prompt_response = await self.api.get_completion(context)
+
+        print(f"Generating image for {prompt_response}...")
+        art = await self.api.get_image(prompt_response, **kwargs)
+        return art
+
+    async def generate_story_paragraph(
+        self,
+        info: StoryInfo,
+        previous_paragraphs: Optional[list[str]] = None,
+        total_paragraphs: int = 7,
+    ):
+        previous_paragraphs = previous_paragraphs or []
+
+        info["total_paragraphs"] = total_paragraphs
+        story_prompt = Prompt.from_file(PROMPTS_PATH / "story.md").format_with(info)
+        paragraph_prompt = Prompt.from_file(PROMPTS_PATH / "paragraph.md")
+        bedtime_betty = str(Prompt.from_file(PROMPTS_PATH / "bedtime_betty.md"))
+
+        context = [system(bedtime_betty), user(story_prompt)]
+
+        if len(previous_paragraphs) >= total_paragraphs:
+            paragraph_info = {
+                "paragraph_number": len(previous_paragraphs) + 1,
+                "total_paragraphs": total_paragraphs,
+            }
+            apology_prompt = Prompt.from_file(
+                PROMPTS_PATH / "too_many_pages.md"
+            ).format_with(paragraph_info)
+
+            context.append(user(apology_prompt))
+            return paragraph_info["paragraph_number"], await self.api.get_completion(
+                context
+            )
+
+        paragraph_info = {
+            "paragraph_number": 1,
+            "total_paragraphs": total_paragraphs,
+        }
+
+        for i in range(len(previous_paragraphs)):
+            context.append(user(paragraph_prompt.format_with(paragraph_info)))
+            context.append(assistant(previous_paragraphs[i]))
+
+            paragraph_info["paragraph_number"] += 1
+
+        context.append(user(paragraph_prompt.format_with(paragraph_info)))
+
+        return (await self.api.get_completion(context)).strip()
+
+    async def generate_story_paragraphs_streaming(
+        self,
+        info: StoryInfo,
+        total_paragraphs: int = 7,
+    ):
+        previous_paragraphs = []
+        for _ in range(total_paragraphs):
+            paragraph = await self.generate_story_paragraph(
+                info, previous_paragraphs, total_paragraphs
+            )
+            previous_paragraphs.append(paragraph)
+            yield paragraph

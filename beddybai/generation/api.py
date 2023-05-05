@@ -1,9 +1,11 @@
 import base64
 from functools import wraps
 from typing import AsyncGenerator, Iterable
+import re
 
 import openai
 import tiktoken
+import yaml
 
 from .types import Message, Role
 
@@ -36,6 +38,13 @@ def count_tokens(text: str, model: str = MODEL) -> int:
 
     encoding = tiktoken.encoding_for_model(model)
     return len(encoding.encode(text))
+
+
+def parse_yaml_object(response_text):
+    try:
+        return yaml.safe_load(response_text)
+    except yaml.YAMLError:
+        return None
 
 
 def system(content: str) -> Message:
@@ -106,6 +115,47 @@ class OpenAI:
             yield chunk["choices"][0]["delta"]
 
     @guard_errors
+    async def stream_yaml(
+        self,
+        messages: Iterable[Message],
+        model: str = MODEL,
+        temperature: float = 1,
+    ) -> AsyncGenerator[str, None]:
+        """Streams the generated text in chunks based on the given messages."""
+
+        response = self.stream_completion(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+        )
+
+        buffer = ""
+
+        # Regex pattern to identify the start of a new object
+        end_of_object_pattern = re.compile(r"\n\n")
+
+        async for chunk in response:
+            buffer += chunk.get("content", "")
+            match = end_of_object_pattern.search(buffer)
+
+            while match is not None:
+                complete_yaml_object = buffer[: match.end() - 1]
+                parsed_yaml = parse_yaml_object(complete_yaml_object)
+
+                if parsed_yaml is not None:
+                    yield parsed_yaml[0] if isinstance(
+                        parsed_yaml, list
+                    ) else parsed_yaml
+
+                buffer = buffer[match.end() :]
+                match = end_of_object_pattern.search(buffer)
+
+        if buffer:
+            parsed_yaml = parse_yaml_object(buffer)
+            if parsed_yaml is not None:
+                yield parsed_yaml[0]
+
+    @guard_errors
     async def get_image(
         self, prompt: str, size: int = 1024, response_format="url"
     ) -> str:
@@ -117,3 +167,5 @@ class OpenAI:
 
         content = image_response["data"][0][response_format]
         return base64.b64decode(content) if response_format == "b64_json" else content
+
+
