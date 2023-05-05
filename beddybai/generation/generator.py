@@ -241,7 +241,7 @@ class StoryGenerator:
 
         return await self.generate_items(
             num,
-            "title.md",
+            "story_titles.md",
             {"story_theme": story_theme, "story_lesson": story_lesson},
             lambda response: [title.strip('"-. ') for title in response.splitlines()],
             age_min,
