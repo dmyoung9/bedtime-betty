@@ -18,7 +18,6 @@ mimetypes.add_type("text/css", ".css")
 
 CORS_CONFIG = {
     "allow_origin": ["*"],
-    "allow_headers": ["*"],
 }
 
 
