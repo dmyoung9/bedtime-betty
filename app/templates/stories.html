@@ -5,7 +5,16 @@
 </div>
 <div id="buttons" class="row align-items-center justify-content-center mt-3">
     <div class="col-auto">
-        <button id="prevButton" class="btn btn-secondary d-inline-block action-button">Previous</button>
+        <!-- <button id="readButton" class="btn btn-primary d-inline-block action-button invisible">Let's Read!</button> -->
+        <button id="nextButton" class="btn btn-primary action-btn d-inline-block"
+            style="max-width: 42px; border-radius: 50%; background-color: #7E57C2"><span class="mdi mdi-refresh"
+                style="color: #FFFFFF;"></span></button>
+        <button id="readButton" class="btn btn-primary action-btn d-inline-block"
+            style="max-width: 42px; border-radius: 50%; background-color: #7E57C2"><span
+                class="mdi mdi-book-open-blank-variant" style="color: #FFFFFF;"></span></button>
+        <div id="nextSpinner" class="row align-items-center justify-content-center invisible" style="color: #7E57C2;">
+            <div class="col-4 spinner-grow"></div>
+        </div>
     </div>
     <div class="col-auto">
         <button id="nextButton" class="btn btn-primary d-inline-block action-button">Next</button>

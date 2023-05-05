@@ -45,3 +45,27 @@ body {
     height: 100%;
     border: none;
 }
+
+.action-btn.loaded {
+    scale: 100%;
+}
+
+.invisible {
+    display: none;
+}
+
+.slide-left {
+    transition: transform 0.3s ease-out;
+    transform: translateX(-100%);
+}
+
+.story-text {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.5s, transform 0.3s;
+}
+
+.story-text.loaded {
+    opacity: 1;
+    transform: translateY(0);
+}

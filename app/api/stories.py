@@ -360,3 +360,17 @@ async def stream_pages():
             req = data.get("data")
             story_generator = StoryGenerator(req.pop("api_key", ""))
             asyncio.create_task(parse_and_emit_objects(req))
+
+
+@stories_blueprint.route("/image", methods=["POST"])
+async def get_image():
+    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    story_generator = StoryGenerator(openai_api_key)
+
+    data = (await request.get_json()) or {}
+    data.pop("api_key", None)
+
+    story_paragraph = data.pop("story_paragraph", "")
+    return await story_generator.generate_image(
+        story_paragraph=story_paragraph, story_info=data, size=512
+    )
