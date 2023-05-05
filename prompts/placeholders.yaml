@@ -24,7 +24,7 @@ artist_styles:
   - age_min
   - age_max
 
-title:
+story_titles:
   - num
   - plural # system-added
   - age_min
