@@ -46,7 +46,13 @@ async def index():
 
 @quart_app.route("/stories", methods=["GET"])
 async def stories():
-    return await render_template("/stories.html")
+    return await render_template(
+        "/stories.html",
+        base_api_url=Config.BASE_API_URL,
+        ws_api_url=Config.BASE_API_URL.replace("http://", "ws://").replace(
+            "https://", "ws://"
+        ),
+    )
 
 
 @quart_app.route("/settings", methods=["GET"])
