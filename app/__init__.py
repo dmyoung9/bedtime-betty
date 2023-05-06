@@ -9,7 +9,8 @@ from .config import Config
 
 
 CORS_CONFIG = {
-    "allow_origin": ["*"],
+    "allow_origin": ["http://bedtime-betty.com", "http://www.bedtime-betty.com"],
+    "allow_header": ["Content-Type", "OPENAI_API_KEY"],
 }
 
 
@@ -17,7 +18,7 @@ async def create_app(config_name):
     app = Quart(__name__)
     app.config.from_object(config_name)
 
-    # app = cors(app, **CORS_CONFIG)
+    app = cors(app, **CORS_CONFIG)
 
     db.init_app(app)
     async with app.app_context():
