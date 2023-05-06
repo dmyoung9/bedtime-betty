@@ -223,7 +223,7 @@ async function postToUrl(url, num, requestData = null, json = true) {
     const apiKey = localStorage.getItem('apiKey') || '';
     const headers = new Headers()
     headers.append("Content-Type", "application/json");
-    headers.append("OPENAI_API_KEY", apiKey);
+    headers.append("Authorization", `Bearer ${apiKey}`);
 
     const data = requestData || buildRequestData(num)
 

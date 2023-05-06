@@ -315,7 +315,7 @@ async def stream_lessons():
 @stories_blueprint.route("/next", methods=["POST"])
 # @route_cors(allow_origin=allowed_origins, allow_headers=allowed_headers)
 async def get_page():
-    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    openai_api_key = request.headers.get("Authorization").split(" ")[1]
     story_generator = StoryGenerator(openai_api_key)
 
     data = (await request.get_json()) or {}
@@ -352,7 +352,7 @@ async def stream_pages():
 @stories_blueprint.route("/image", methods=["POST"])
 # @route_cors(allow_origin=allowed_origins)
 async def get_image():
-    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    openai_api_key = request.headers.get("Authorization").split(" ")[1]
     story_generator = StoryGenerator(openai_api_key)
 
     data = (await request.get_json()) or {}
