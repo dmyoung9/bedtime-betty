@@ -50,6 +50,7 @@ async def stories():
     return await render_template(
         "/stories.html",
         base_api_url=Config.BASE_API_URL,
+        ssl_enabled=Config.SSL_ENABLED,
     )
 
 

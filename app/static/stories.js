@@ -13,8 +13,8 @@ var chosenArtist = null;
 var chosenTitle = null;
 var paragraphs = [];
 
-const base_api_url = `http://${window.config.BASE_API_URL}`;
-const ws_api_url = `ws://${window.config.BASE_API_URL}`;
+const base_api_url = `${window.config.ssl_enabled ? 'https' : 'http'}://${window.config.BASE_API_URL}`;
+const ws_api_url = `${window.config.ssl_enabled ? 'wss' : 'ws'}://${window.config.BASE_API_URL}`;
 const totalParagraphs = 7;
 
 function showSpinner(element, labelElement = null, label = null) {
