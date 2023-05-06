@@ -18,7 +18,7 @@ mimetypes.add_type("text/css", ".css")
 
 CORS_CONFIG = {
     "allow_origin": ["http://bedtime-betty.com", "http://www.bedtime-betty.com"],
-    "allow_header": ["Content-Type", "OPENAI_API_KEY"],
+    "allow_header": ["Content-Type", "Authorization"],
 }
 
 
