@@ -40,7 +40,7 @@ async def start_new_story():
 @stories_blueprint.route("/themes", methods=["POST"])
 # @route_cors(allow_origin=allowed_origins, allow_headers=allowed_headers)
 async def generate_theme_suggestions():
-    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    openai_api_key = request.headers.get("Authorization").split(" ")[1]
     story_generator = StoryGenerator(openai_api_key)
 
     data = await request.get_json()
@@ -52,7 +52,7 @@ async def generate_theme_suggestions():
 @stories_blueprint.route("/lessons", methods=["POST"])
 # @route_cors(allow_origin=allowed_origins, allow_headers=allowed_headers)
 async def generate_lesson_suggestions():
-    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    openai_api_key = request.headers.get("Authorization").split(" ")[1]
     story_generator = StoryGenerator(openai_api_key)
 
     data = await request.get_json()
@@ -64,7 +64,7 @@ async def generate_lesson_suggestions():
 @stories_blueprint.route("/titles", methods=["POST"])
 # @route_cors(allow_origin=allowed_origins, allow_headers=allowed_headers)
 async def generate_title_suggestions():
-    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    openai_api_key = request.headers.get("Authorization").split(" ")[1]
     story_generator = StoryGenerator(openai_api_key)
 
     data = await request.get_json()
@@ -76,7 +76,7 @@ async def generate_title_suggestions():
 @stories_blueprint.route("/authors", methods=["POST"])
 # @route_cors(allow_origin=allowed_origins, allow_headers=allowed_headers)
 async def generate_author_suggestions():
-    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    openai_api_key = request.headers.get("Authorization").split(" ")[1]
     story_generator = StoryGenerator(openai_api_key)
 
     data = await request.get_json()
@@ -88,7 +88,7 @@ async def generate_author_suggestions():
 @stories_blueprint.route("/artists", methods=["POST"])
 # @route_cors(allow_origin=allowed_origins, allow_headers=allowed_headers)
 async def generate_artist_suggestions():
-    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    openai_api_key = request.headers.get("Authorization").split(" ")[1]
     story_generator = StoryGenerator(openai_api_key)
 
     data = await request.get_json()
@@ -341,7 +341,7 @@ async def stream_lessons():
 @stories_blueprint.route("/next", methods=["POST"])
 # @route_cors(allow_origin=allowed_origins, allow_headers=allowed_headers)
 async def get_page():
-    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    openai_api_key = request.headers.get("Authorization").split(" ")[1]
     story_generator = StoryGenerator(openai_api_key)
 
     data = (await request.get_json()) or {}
@@ -378,7 +378,7 @@ async def stream_pages():
 @stories_blueprint.route("/image", methods=["POST"])
 # @route_cors(allow_origin=allowed_origins)
 async def get_image():
-    openai_api_key = request.headers.get("OPENAI_API_KEY")
+    openai_api_key = request.headers.get("Authorization").split(" ")[1]
     story_generator = StoryGenerator(openai_api_key)
 
     data = (await request.get_json()) or {}
