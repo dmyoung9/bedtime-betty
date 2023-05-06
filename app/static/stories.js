@@ -13,6 +13,8 @@ var chosenArtist = null;
 var chosenTitle = null;
 var paragraphs = [];
 
+const base_api_url = window.config.API_BASE_URL;
+const ws_api_url = window.config.WS_BASE_URL;
 const totalParagraphs = 7;
 
 function showSpinner(element, labelElement = null, label = null) {
@@ -142,7 +144,7 @@ function formatArtistButton(button, artist) {
 }
 
 async function formatPage(element, page) {
-    let imgSrc = await postToUrl("http://192.168.1.212:5000/api/stories/image", null, requestData = { story_paragraph: page, ...buildStoryInfo() }, json = false);
+    let imgSrc = await postToUrl(`${base_api_url}/api/stories/image`, null, requestData = { story_paragraph: page, ...buildStoryInfo() }, json = false);
 
     const div = document.createElement('div');
     div.classList.add('col-12', 'text-center', 'story-text');
@@ -253,7 +255,7 @@ async function buildStoryDetails(theme, idx) {
     await slideOutOptions(-1);
 
     showSpinner("loadingSpinner", "loadingSpinnerLabel", "Ok, let me think about it...");
-    let lessons = await postToUrl("http://192.168.1.212:5000/api/stories/lessons", num = 10);
+    let lessons = await postToUrl(`${base_api_url}/api/stories/lessons`, num = 10);
 
     const randomLesson = lessons[Math.floor(Math.random() * lessons.length)];
     chosenLesson = randomLesson;
@@ -263,7 +265,7 @@ async function buildStoryDetails(theme, idx) {
     titleRequestData['story_theme'] = chosenTheme.story_theme;
     titleRequestData['story_lesson'] = chosenLesson;
 
-    let titles = await postToUrl("http://192.168.1.212:5000/api/stories/titles", num = 5, requestData = titleRequestData);
+    let titles = await postToUrl(`${base_api_url}/api/stories/titles`, num = 5, requestData = titleRequestData);
     const randomTitle = titles[Math.floor(Math.random() * titles.length)];
     chosenTitle = randomTitle;
 
@@ -272,7 +274,7 @@ async function buildStoryDetails(theme, idx) {
     addOption(randomLesson, formatLessonButton, null, true);
     console.log(randomTitle);
 
-    let authors = await postToUrl("http://192.168.1.212:5000/api/stories/authors", num = 5);
+    let authors = await postToUrl(`${base_api_url}/api/stories/authors`, num = 5);
     const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
     chosenAuthor = randomAuthor;
     showSpinner("loadingSpinner", "loadingSpinnerLabel", "Yep, that should do nicely...");
@@ -280,7 +282,7 @@ async function buildStoryDetails(theme, idx) {
     console.log(randomAuthor);
 
     showSpinner("loadingSpinner", "loadingSpinnerLabel", "One more thing...");
-    let artists = await postToUrl("http://192.168.1.212:5000/api/stories/artists", num = 5);
+    let artists = await postToUrl(`${base_api_url}/api/stories/artists`, num = 5);
     const randomArtist = artists[Math.floor(Math.random() * artists.length)];
     chosenArtist = randomArtist;
     addOption(randomArtist, formatArtistButton, null, true);
@@ -319,7 +321,7 @@ function getContrastTextColor(hexColor) {
 async function getThemes() {
     nextButton.classList.remove('loaded');
     readButton.classList.remove('loaded');
-    await fetchOptionsFromWebsocket('ws://192.168.1.212:5000/api/stories/themes/stream', "Let's come up with some ideas...", formatThemeButton, buildStoryDetails);
+    await fetchOptionsFromWebsocket(`${ws_api_url}/api/stories/themes/stream`, "Let's come up with some ideas...", formatThemeButton, buildStoryDetails);
 }
 
 
@@ -333,7 +335,7 @@ async function getNextPage() {
     showSpinner("nextSpinner", null);
     readButton.classList.remove('loaded')
     nextButton.classList.remove('loaded')
-    await fetchOptionsFromWebsocket('ws://192.168.1.212:5000/api/stories/stream', null, formatPage, null, null, storyInfo, true, false);
+    await fetchOptionsFromWebsocket(`${ws_api_url}/api/stories/stream`, null, formatPage, null, null, storyInfo, true, false);
 
     hideSpinner("nextSpinner");
     // nextButton.classList.add('loaded')
