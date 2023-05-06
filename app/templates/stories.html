@@ -16,11 +16,12 @@
             <div class="col-4 spinner-grow"></div>
         </div>
     </div>
-    <div class="col-auto">
-        <button id="nextButton" class="btn btn-primary d-inline-block action-button">Next</button>
-    </div>
-</div>
-{% endblock %} {% block scripts %}
-<script src="{{ url_for( 'static', filename='app.js' ) }} "></script>
-<script src="{{ url_for( 'static', filename='wizard.js' ) }} "></script>
+</div>{% endblock %} {% block scripts %}
+<script>
+    window.config = {
+        API_BASE_URL: "{{ base_api_url }}",
+        WS_BASE_URL: "{{ ws_api_url }}"
+    };
+</script>
+<script src="{{ url_for( 'static', filename='stories.js' ) }} "></script>
 {% endblock %}
