@@ -17,7 +17,7 @@ async def create_app(config_name):
     app = Quart(__name__)
     app.config.from_object(config_name)
 
-    app = cors(app, **CORS_CONFIG)
+    # app = cors(app, **CORS_CONFIG)
 
     db.init_app(app)
     async with app.app_context():
