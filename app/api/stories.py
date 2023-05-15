@@ -3,9 +3,9 @@ import json
 
 from quart import Blueprint, request, jsonify, websocket
 from quart_cors import route_cors
-from beddybai.generation.api import OpenAI, user
+from betty.api import OpenAI, user
 
-from beddybai.generation.generator import StoryGenerator
+from betty.generator import StoryGenerator
 
 from ..database import db
 from ..database.models import Artist, Author, Story, Theme, Title, Lesson

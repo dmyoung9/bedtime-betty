@@ -1,4 +1,5 @@
 import base64
+import contextlib
 from functools import wraps
 from typing import AsyncGenerator, Iterable
 import re
@@ -6,8 +7,9 @@ import re
 import openai
 import tiktoken
 import yaml
+import json
 
-from .types import Message, Role
+from .types import API, Message, Role
 
 MODEL = "gpt-3.5-turbo-0301"
 
@@ -47,6 +49,18 @@ def parse_yaml_object(response_text):
         return None
 
 
+def extract_json(string):
+    if json_match := re.search(r"\{.*\}|\[.*\]", string, re.DOTALL):
+        try:
+            return json.loads(json_match.group())
+        except json.JSONDecodeError:
+            print("Decoding JSON has failed")
+            return None
+    else:
+        print("No JSON object found in the string")
+        return None
+
+
 def system(content: str) -> Message:
     """Creates a system message with the given content."""
 
@@ -65,7 +79,7 @@ def user(content: str) -> Message:
     return OpenAI.message("user", content)
 
 
-class OpenAI:
+class OpenAI(API):
     """A class that provides methods for interacting with the OpenAI API."""
 
     def __init__(self, api_key: str):
@@ -120,7 +134,7 @@ class OpenAI:
         messages: Iterable[Message],
         model: str = MODEL,
         temperature: float = 1,
-        separator: str = r"\n\n"
+        separator: str = r"\n\n",
     ) -> AsyncGenerator[str, None]:
         """Streams the generated text in chunks based on the given messages."""
 
@@ -155,6 +169,58 @@ class OpenAI:
             parsed_yaml = parse_yaml_object(buffer)
             if parsed_yaml is not None:
                 yield parsed_yaml[0]
+
+    @guard_errors
+    async def stream_json(
+        self,
+        messages: Iterable[Message],
+        model: str = MODEL,
+        temperature: float = 1,
+    ) -> AsyncGenerator[dict, None]:
+        """Streams the generated text in chunks based on the given messages."""
+
+        response = self.stream_completion(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+        )
+
+        buffer = ""
+        open_brackets = 0
+        start = 0
+        started = False
+
+        async for chunk in response:
+            buffer += chunk.get("content", "")
+
+            while buffer:
+                if not started:
+                    # Try to find the start of a JSON object
+                    try:
+                        start = buffer.index("{")
+                        buffer = buffer[start:]
+                        started = True
+                        open_brackets = 1
+                    except ValueError:
+                        # No JSON object in buffer, so clear it
+                        buffer = ""
+                else:
+                    # Look for the end of the JSON object
+                    for i, char in enumerate(buffer[1:], start=1):
+                        if char == "{":
+                            open_brackets += 1
+                        elif char == "}":
+                            open_brackets -= 1
+                            if open_brackets == 0:
+                                json_str = buffer[: i + 1]
+                                yield json.loads(json_str)
+                                buffer = buffer[i + 1 :]
+                                started = False
+                                break
+                    else:
+                        # No complete JSON object found, so break out of the loop
+                        # and wait for more chunks
+                        break
 
     @guard_errors
     async def get_image(

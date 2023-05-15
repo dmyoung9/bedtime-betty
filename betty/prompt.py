@@ -20,10 +20,10 @@ class Prompt:
         prompt = Path(path).read_text(encoding="utf-8")
         return Prompt(prompt)
 
-    def format_with(self, info: StoryInfo):
+    def format(self, info: StoryInfo = None):
         """Format the prompt text using the provided info dictionary."""
 
-        return self.prompt.format(**info)
+        return self.prompt.format(**info) if info is not None else self.prompt
 
     def __str__(self) -> str:
         """Return the string representation of the prompt."""
