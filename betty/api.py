@@ -2,11 +2,9 @@ import base64
 import contextlib
 from functools import wraps
 from typing import AsyncGenerator, Iterable
-import re
 
 import openai
 import tiktoken
-import yaml
 import json
 
 from .types import API, Message, Role
@@ -40,25 +38,6 @@ def count_tokens(text: str, model: str = MODEL) -> int:
 
     encoding = tiktoken.encoding_for_model(model)
     return len(encoding.encode(text))
-
-
-def parse_yaml_object(response_text):
-    try:
-        return yaml.safe_load(response_text)
-    except yaml.YAMLError:
-        return None
-
-
-def extract_json(string):
-    if json_match := re.search(r"\{.*\}|\[.*\]", string, re.DOTALL):
-        try:
-            return json.loads(json_match.group())
-        except json.JSONDecodeError:
-            print("Decoding JSON has failed")
-            return None
-    else:
-        print("No JSON object found in the string")
-        return None
 
 
 def system(content: str) -> Message:
@@ -142,10 +121,7 @@ class OpenAI(API):
             temperature=temperature,
         )
 
-        try:
-            return json.loads(response)
-        except json.JSONDecodeError:
-            print("ERROR IN RESPONSE: " + response)
+        return json.loads(response)
 
     async def stream_json(
         self,
