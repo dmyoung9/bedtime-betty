@@ -92,7 +92,7 @@ class OpenAI(API):
         return {"role": role, "content": content}
 
     @guard_errors
-    async def get_completion(
+    async def _get_completion(
         self,
         messages: Iterable[Message],
         model: str = MODEL,
@@ -110,7 +110,7 @@ class OpenAI(API):
         return response["choices"][0]["message"]["content"]
 
     @guard_errors
-    async def stream_completion(
+    async def _stream_completion(
         self,
         messages: Iterable[Message],
         model: str = MODEL,
@@ -128,49 +128,25 @@ class OpenAI(API):
         async for chunk in response:
             yield chunk["choices"][0]["delta"]
 
-    @guard_errors
-    async def stream_yaml(
+    async def get_json(
         self,
         messages: Iterable[Message],
         model: str = MODEL,
         temperature: float = 1,
-        separator: str = r"\n\n",
-    ) -> AsyncGenerator[str, None]:
+    ):
         """Streams the generated text in chunks based on the given messages."""
 
-        response = self.stream_completion(
+        response = await self._get_completion(
             model=model,
             messages=messages,
             temperature=temperature,
         )
 
-        buffer = ""
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError:
+            print("ERROR IN RESPONSE: " + response)
 
-        # Regex pattern to identify the start of a new object
-        end_of_object_pattern = re.compile(separator)
-
-        async for chunk in response:
-            buffer += chunk.get("content", "")
-            match = end_of_object_pattern.search(buffer)
-
-            while match is not None:
-                complete_yaml_object = buffer[: match.end() - 1]
-                parsed_yaml = parse_yaml_object(complete_yaml_object)
-
-                if parsed_yaml is not None:
-                    yield parsed_yaml[0] if isinstance(
-                        parsed_yaml, list
-                    ) else parsed_yaml
-
-                buffer = buffer[match.end() :]
-                match = end_of_object_pattern.search(buffer)
-
-        if buffer:
-            parsed_yaml = parse_yaml_object(buffer)
-            if parsed_yaml is not None:
-                yield parsed_yaml[0]
-
-    @guard_errors
     async def stream_json(
         self,
         messages: Iterable[Message],
@@ -179,48 +155,30 @@ class OpenAI(API):
     ) -> AsyncGenerator[dict, None]:
         """Streams the generated text in chunks based on the given messages."""
 
-        response = self.stream_completion(
+        response = self._stream_completion(
             model=model,
             messages=messages,
             temperature=temperature,
         )
 
         buffer = ""
-        open_brackets = 0
-        start = 0
-        started = False
+        start_position = -1
+        brace_count = 0
 
         async for chunk in response:
-            buffer += chunk.get("content", "")
-
-            while buffer:
-                if not started:
-                    # Try to find the start of a JSON object
-                    try:
-                        start = buffer.index("{")
-                        buffer = buffer[start:]
-                        started = True
-                        open_brackets = 1
-                    except ValueError:
-                        # No JSON object in buffer, so clear it
-                        buffer = ""
-                else:
-                    # Look for the end of the JSON object
-                    for i, char in enumerate(buffer[1:], start=1):
-                        if char == "{":
-                            open_brackets += 1
-                        elif char == "}":
-                            open_brackets -= 1
-                            if open_brackets == 0:
-                                json_str = buffer[: i + 1]
-                                yield json.loads(json_str)
-                                buffer = buffer[i + 1 :]
-                                started = False
-                                break
-                    else:
-                        # No complete JSON object found, so break out of the loop
-                        # and wait for more chunks
-                        break
+            for char in chunk.get("content", ""):
+                buffer += char
+                if char == "{":
+                    if start_position == -1:
+                        start_position = len(buffer) - 1
+                    brace_count += 1
+                elif char == "}":
+                    brace_count -= 1
+                    if brace_count == 0:
+                        with contextlib.suppress(json.JSONDecodeError):
+                            yield json.loads(buffer[start_position:])
+                        start_position = -1
+                        buffer = buffer[len(buffer) :]  # Keep the buffer clean
 
     @guard_errors
     async def get_image(

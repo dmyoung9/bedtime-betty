@@ -189,3 +189,7 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/flask,visualstudiocode
 
 .vscode/settings.json
+
+*.pem
+
+aws.bat

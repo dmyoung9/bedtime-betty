@@ -1,1 +1,0 @@
-Please list {num} illustrator{plural} or artist{plural} whose target audience is primarily {age_min}-{age_max} year-olds, along with 3-5 visual (not literary) styles or themes that are associated with their works. Format your response like: `- artist: style, theme, etc` **Do not** include any other content or apply additional formatting.
