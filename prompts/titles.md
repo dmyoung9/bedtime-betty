@@ -6,4 +6,4 @@ Example{plural}:
 {examples}
 ```
 
-Please only respond with an unformatted JSON array of {num} title object{plural}, as in the example{plural}. Use double quotes for keys and values.
+Please only respond with an unformatted JSON array of {num} title{plural}, as in the example{plural}.

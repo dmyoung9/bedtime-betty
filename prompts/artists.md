@@ -8,4 +8,4 @@ Example{plural}:
 {examples}
 ```
 
-Please only respond with an unformatted JSON array of {num} artist object{plural}, as in the example{plural}. Use double quotes for keys and values. `artist_style` should be a single string, containing a comma-separated list of styles.
+Please only respond with an unformatted JSON array of {num} artist{plural}, as in the example{plural}. `artist_style` should be a single string, containing a comma-separated list of styles.
