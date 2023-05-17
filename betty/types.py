@@ -3,7 +3,6 @@ from abc import ABCMeta
 
 from dataclasses import dataclass
 from typing import Literal, TypedDict, Optional
-import re
 
 import emoji as em
 
@@ -31,7 +30,7 @@ class StoryInfo(TypedDict, total=False):
     num: int
     emoji: str
     idea: str
-    story_lesson: str
+    lesson: str
     plural: str
 
 

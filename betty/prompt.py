@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Optional
 
 from .types import StoryInfo
 
@@ -20,7 +21,7 @@ class Prompt:
         prompt = Path(path).read_text(encoding="utf-8")
         return Prompt(prompt)
 
-    def format(self, info: StoryInfo = None):
+    def format(self, info: Optional[StoryInfo] = None):
         """Format the prompt text using the provided info dictionary."""
 
         return self.prompt.format(**info) if info is not None else self.prompt
