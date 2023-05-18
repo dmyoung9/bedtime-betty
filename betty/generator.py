@@ -2,9 +2,12 @@ from dataclasses import asdict
 import json
 
 from typing import AsyncGenerator, Optional, Type
+
+from betty.api import OpenAI
 from . import BaseGenerator
 from .types import Artist, Author, Idea, Item, Lesson, Paragraph, Scene, Title
 
+SYSTEM_PROMPT = "bedtime_betty"
 DEFAULT_NUM = 3
 DEFAULT_AGE = 7
 
@@ -14,20 +17,22 @@ def plural(num):
 
 
 class StoryGenerator(BaseGenerator[Item]):
+    def __init__(self, api_key, *args, **kwargs):
+        super().__init__(system_prompt=SYSTEM_PROMPT, *args, **kwargs)
+        self.api = OpenAI(api_key)
+
     def _build_info(
         self,
-        num: int = DEFAULT_NUM,
-        age: int = DEFAULT_AGE,
         examples: Optional[list[Item]] = None,
         **kwargs,
     ):
-        k_num = kwargs.pop("num", num)
+        num = kwargs.pop("num")
 
         info = {
-            "num": k_num,
-            "age": kwargs.pop("age", age),
+            "num": num,
+            "age": kwargs.pop("age"),
             "examples": json.dumps(examples or []),
-            "plural": plural(k_num),
+            "plural": plural(num),
         }
 
         for k, v in kwargs.items():
@@ -43,20 +48,18 @@ class StoryGenerator(BaseGenerator[Item]):
     def _build_filename(self, obj: Type[Item]) -> str:
         return f"{obj.__name__.lower()}s.md"
 
-    async def stream_story_ideas(self, **kwargs) -> AsyncGenerator[Item, None]:
-        examples = kwargs.get("examples") or Idea.examples(
-            kwargs.get("num", DEFAULT_NUM)
-        )
+    async def generate_story_ideas(self, **kwargs) -> list[Item]:
+        return await self.generate_items(Idea, **kwargs)
 
-        async for idea in self.stream_items(Idea, examples=examples, **kwargs):
+    async def stream_story_ideas(self, **kwargs) -> AsyncGenerator[Item, None]:
+        async for idea in self.stream_items(Idea, **kwargs):
             yield idea
 
-    async def stream_story_lessons(self, **kwargs) -> AsyncGenerator[Item, None]:
-        examples = kwargs.get("examples") or Lesson.examples(
-            kwargs.get("num", DEFAULT_NUM)
-        )
+    async def generate_story_lessons(self, **kwargs) -> list[Item]:
+        return await self.generate_items(Lesson, **kwargs)
 
-        async for lesson in self.stream_items(Lesson, examples=examples, **kwargs):
+    async def stream_story_lessons(self, **kwargs) -> AsyncGenerator[Item, None]:
+        async for lesson in self.stream_items(Lesson, **kwargs):
             yield lesson
 
     async def stream_story_authors(self, **kwargs) -> AsyncGenerator[Item, None]:

@@ -16,8 +16,18 @@ DEFAULT_NUM = 3
 DEFAULT_AGE = 7
 
 
+class BaseAPI(metaclass=ABCMeta):
+    @abstractmethod
+    def get_json(self, *args, **kwargs):
+        ...
+
+    @abstractmethod
+    def stream_json(self, *args, **kwargs):
+        ...
+
+
 class BaseGenerator(Generic[T], metaclass=ABCMeta):
-    def __init__(self, api, system_prompt: str):
+    def __init__(self, api: BaseAPI, system_prompt: str, *args, **kwargs):
         self.api = api
         self.system_prompt = system_prompt
 

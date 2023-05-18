@@ -16,6 +16,7 @@ quart-sqlalchemy = "^2.0.0"
 quart-cors = "^0.6.0"
 pyyaml = "^6.0"
 emoji = "^2.2.0"
+pydantic = "^1.10.7"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.263"
