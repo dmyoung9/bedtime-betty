@@ -1,17 +1,9 @@
 from dataclasses import asdict
-
 import json
-import os
-from pathlib import Path
-from typing import AsyncGenerator, Iterable, Optional
 
-from .api import system, user
-from .prompt import Prompt
-from .types import API, Item, ItemInfo, Message
-
-
-BASE_PATH = Path(os.getcwd())
-PROMPTS_PATH = BASE_PATH / "prompts"
+from typing import AsyncGenerator, Optional
+from . import BaseGenerator
+from .types import Artist, Author, Idea, Item, Lesson, Paragraph, Scene, Title
 
 DEFAULT_NUM = 3
 DEFAULT_AGE = 7
@@ -21,24 +13,14 @@ def plural(num):
     return "s" if num > 1 else ""
 
 
-class StoryGenerator:
-    """
-    A class for generating stories, titles, themes, lessons, authors, artists,
-    and images using OpenAI's API. Each story is tailored for a specific age
-    range based on the user inputs.
-    """
-
-    def __init__(self, api: API):
-        """Initialize a new instance of the StoryGenerator class."""
-        self.api = api
-
-    @staticmethod
+class StoryGenerator(BaseGenerator[Item]):
     def _build_info(
+        self,
         num: int = DEFAULT_NUM,
         age: int = DEFAULT_AGE,
-        examples: list[Item] = None,
+        examples: Optional[list[Item]] = None,
         **kwargs,
-    ) -> ItemInfo:
+    ):
         k_num = kwargs.pop("num", num)
 
         info = {
@@ -58,43 +40,63 @@ class StoryGenerator:
 
         return info
 
-    @staticmethod
-    def _build_messages(prompt_filename: str, **kwargs) -> Iterable[Message]:
-        bedtime_betty = Prompt.from_file(PROMPTS_PATH / "bedtime_betty.md").format()
-        prompt = Prompt.from_file(PROMPTS_PATH / prompt_filename).format(kwargs)
+    def _build_filename(self, obj: Item) -> str:
+        return f"{type(obj).__name__.lower()}s.md"
 
-        return [
-            system(bedtime_betty),
-            user(prompt),
-        ]
-
-    async def generate_items(
-        self,
-        obj: Item,
-        examples: Optional[list[Item]] = None,
-        **kwargs,
-    ) -> list[Item]:
-        info = StoryGenerator._build_info(
-            examples=examples or obj.examples(kwargs.get("num", DEFAULT_NUM)), **kwargs
+    async def stream_story_ideas(self, **kwargs) -> AsyncGenerator[Item, None]:
+        examples = kwargs.get("examples") or Idea.examples(
+            kwargs.get("num", DEFAULT_NUM)
         )
-        print(f"Generating {obj.prompt_type()} for {info}...")
 
-        messages = StoryGenerator._build_messages(f"{obj.prompt_type()}.md", **info)
-        items = await self.api.get_json(messages)
+        async for idea in self.stream_items(Idea, examples=examples, **kwargs):
+            yield idea
 
-        return [obj(**item) for item in items]
-
-    async def stream_items(
-        self,
-        obj: Item,
-        examples: Optional[list[Item]] = None,
-        **kwargs,
-    ) -> AsyncGenerator[Item, None]:
-        info = StoryGenerator._build_info(
-            examples=examples or obj.examples(kwargs.get("num", DEFAULT_NUM)), **kwargs
+    async def stream_story_lessons(self, **kwargs) -> AsyncGenerator[Item, None]:
+        examples = kwargs.get("examples") or Lesson.examples(
+            kwargs.get("num", DEFAULT_NUM)
         )
-        print(f"Streaming {obj.prompt_type()} for {info}...")
 
-        messages = StoryGenerator._build_messages(f"{obj.prompt_type()}.md", **info)
-        async for item in self.api.stream_json(messages):
-            yield obj(**item)
+        async for lesson in self.stream_items(Lesson, examples=examples, **kwargs):
+            yield lesson
+
+    async def stream_story_authors(self, **kwargs) -> AsyncGenerator[Item, None]:
+        examples = kwargs.get("examples") or Author.examples(
+            kwargs.get("num", DEFAULT_NUM)
+        )
+
+        async for author in self.stream_items(Author, examples=examples, **kwargs):
+            yield author
+
+    async def stream_story_artists(self, **kwargs) -> AsyncGenerator[Item, None]:
+        examples = kwargs.get("examples") or Artist.examples(
+            kwargs.get("num", DEFAULT_NUM)
+        )
+
+        async for artist in self.stream_items(Artist, examples=examples, **kwargs):
+            yield artist
+
+    async def stream_story_titles(self, **kwargs) -> AsyncGenerator[Item, None]:
+        examples = kwargs.get("examples") or Title.examples(
+            kwargs.get("num", DEFAULT_NUM)
+        )
+
+        async for title in self.stream_items(Title, examples=examples, **kwargs):
+            yield title
+
+    async def stream_story_paragraphs(self, **kwargs) -> AsyncGenerator[Item, None]:
+        examples = kwargs.get("examples") or Paragraph.examples(
+            kwargs.get("num", DEFAULT_NUM)
+        )
+
+        async for paragraph in self.stream_items(
+            Paragraph, examples=examples, **kwargs
+        ):
+            yield paragraph
+
+    async def stream_story_scenes(self, **kwargs) -> AsyncGenerator[Item, None]:
+        examples = kwargs.get("examples") or Scene.examples(
+            kwargs.get("num", DEFAULT_NUM)
+        )
+
+        async for scene in self.stream_items(Scene, examples=examples, **kwargs):
+            yield scene

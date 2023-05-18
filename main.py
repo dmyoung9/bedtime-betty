@@ -1,12 +1,11 @@
 from dotenv import load_dotenv
 
-from betty.api import OpenAI, assistant, user
-from betty.types import Artist, Author, Idea, Lesson, Paragraph, Scene, Title
+from betty.api import OpenAI
 
 load_dotenv()
 
-import asyncio
-import random
+import asyncio  # noqa: E402
+import random  # noqa: E402
 import os  # noqa: E402
 
 # from app import quart_app  # noqa: E402
@@ -14,7 +13,7 @@ from betty.generator import StoryGenerator  # noqa: E402
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 CLIENT = OpenAI(OPENAI_API_KEY)
-story_generator = StoryGenerator(CLIENT)
+story_generator = StoryGenerator(CLIENT, "bedtime_betty")
 
 
 async def main():
@@ -24,17 +23,17 @@ async def main():
     # artists = []
     # scenes = []
 
-    async for idea in story_generator.stream_items(Idea, num=10):
+    async for idea in story_generator.stream_story_ideas(num=5):
         ideas.append(idea)
         print(idea, end=",\n")
     print()
 
-    async for lesson in story_generator.stream_items(Lesson, num=10):
+    async for lesson in story_generator.stream_story_lessons(num=10):
         lessons.append(lesson)
         print(lesson, end=",\n")
     print()
 
-    async for author in story_generator.stream_items(Author, num=5):
+    async for author in story_generator.stream_story_authors(num=5):
         authors.append(author)
         print(author, end=",\n")
     print()
@@ -47,7 +46,7 @@ async def main():
     # async for scene in story_generator.stream_items(
     #     Scene,
     #     story_paragraph={
-    #         "content": 'She approached the Honesty Tree with a feeling of shame, \nAnd whispered softly, "I\'m the one to blame." \nThe tree rustled gently and whispered back, \n"Honesty is best, it\'s a fact you can\'t hack."'
+    #         "content": ""
     #     },
     #     num=3,
     # ):
@@ -56,27 +55,22 @@ async def main():
     # print()
 
     titles = []
-    async for title in story_generator.stream_items(
-        Title,
-        examples=[],
-        num=1,
+    async for title in story_generator.stream_story_titles(
+        num=3,
         story_idea=(story_idea := random.choice(ideas)),
         story_lesson=(story_lesson := random.choice(lessons)),
         story_author=(story_author := random.choice(authors)),
     ):
-        story_title = title
         titles.append(title)
         print(title, end=",\n")
 
     print()
-    async for paragraph in story_generator.stream_items(
-        Paragraph,
-        examples=[],
+    async for paragraph in story_generator.stream_story_paragraphs(
         num=5,
         story_idea=story_idea,
         story_lesson=story_lesson,
         story_author=story_author,
-        story_title=story_title,
+        story_title=(story_title := random.choice(titles)),
     ):
         print(paragraph, end=",\n")
     print()
