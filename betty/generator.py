@@ -1,7 +1,7 @@
 from dataclasses import asdict
 import json
 
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator, Optional, Type
 from . import BaseGenerator
 from .types import Artist, Author, Idea, Item, Lesson, Paragraph, Scene, Title
 
@@ -40,8 +40,8 @@ class StoryGenerator(BaseGenerator[Item]):
 
         return info
 
-    def _build_filename(self, obj: Item) -> str:
-        return f"{type(obj).__name__.lower()}s.md"
+    def _build_filename(self, obj: Type[Item]) -> str:
+        return f"{obj.__name__.lower()}s.md"
 
     async def stream_story_ideas(self, **kwargs) -> AsyncGenerator[Item, None]:
         examples = kwargs.get("examples") or Idea.examples(

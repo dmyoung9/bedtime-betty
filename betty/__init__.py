@@ -22,7 +22,7 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
         self.system_prompt = system_prompt
 
     @abstractmethod
-    def _build_filename(self, obj: T) -> str:
+    def _build_filename(self, obj: Type[T]) -> str:
         ...
 
     @abstractmethod
@@ -46,10 +46,10 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
     async def generate_items(
         self,
         obj: Type[T],
-        filename: str,
         **kwargs,
     ) -> list[T]:
         info = self._build_info(**kwargs)
+        filename = self._build_filename(obj)
         print(f"Generating from {filename} for {info}...")
 
         messages = self._build_messages(filename, **info)
@@ -60,10 +60,10 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
     async def stream_items(
         self,
         obj: Type[T],
-        filename: str,
         **kwargs,
     ) -> AsyncGenerator[T, None]:
         info = self._build_info(**kwargs)
+        filename = self._build_filename(obj)
         print(f"Streaming from {filename} for {info}...")
 
         messages = self._build_messages(filename, **info)
