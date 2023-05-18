@@ -7,6 +7,8 @@ import openai
 import tiktoken
 import json
 
+from betty import BaseAPI
+
 from .types import Message, Role
 
 MODEL = "gpt-3.5-turbo-0301"
@@ -58,7 +60,7 @@ def user(content: str) -> Message:
     return OpenAI.message("user", content)
 
 
-class OpenAI:
+class OpenAI(BaseAPI):
     """A class that provides methods for interacting with the OpenAI API."""
 
     def __init__(self, api_key: str):

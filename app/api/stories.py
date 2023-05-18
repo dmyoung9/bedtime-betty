@@ -2,8 +2,6 @@ import asyncio
 import json
 
 from quart import Blueprint, request, jsonify, websocket
-from quart_cors import route_cors
-from betty.api import OpenAI, user
 
 from betty.generator import StoryGenerator
 

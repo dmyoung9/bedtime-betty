@@ -21,27 +21,6 @@ StoryKeys = [
 ]
 
 
-class StoryInfo(TypedDict, total=False):
-    age: int
-    num: int
-    emoji: str
-    idea: str
-    lesson: str
-    plural: str
-
-
-class ItemInfo(TypedDict):
-    num: int
-    age: int
-    plural: str
-    examples: str  # examples is an array of `Item` objects, as a JSON
-
-
-class TitleInfo(ItemInfo):
-    idea: str
-    lesson: str
-
-
 @dataclass
 class Item(metaclass=ABCMeta):
     def __str__(self):

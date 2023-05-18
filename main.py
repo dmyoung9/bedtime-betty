@@ -1,10 +1,11 @@
 from dotenv import load_dotenv
 
+from app import quart_app
 from betty.api import OpenAI
 
 load_dotenv()
 
-import asyncio  # noqa: E402
+# import asyncio  # noqa: E402
 import random  # noqa: E402
 import os  # noqa: E402
 
@@ -13,7 +14,7 @@ from betty.generator import StoryGenerator  # noqa: E402
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 CLIENT = OpenAI(OPENAI_API_KEY)
-story_generator = StoryGenerator(CLIENT, "bedtime_betty")
+story_generator = StoryGenerator(OPENAI_API_KEY)
 
 
 async def main():
@@ -23,17 +24,17 @@ async def main():
     # artists = []
     # scenes = []
 
-    async for idea in story_generator.stream_story_ideas(num=5):
+    async for idea in story_generator.stream_story_ideas():
         ideas.append(idea)
         print(idea, end=",\n")
     print()
 
-    async for lesson in story_generator.stream_story_lessons(num=10):
+    async for lesson in story_generator.stream_story_lessons():
         lessons.append(lesson)
         print(lesson, end=",\n")
     print()
 
-    async for author in story_generator.stream_story_authors(num=5):
+    async for author in story_generator.stream_story_authors():
         authors.append(author)
         print(author, end=",\n")
     print()
@@ -56,7 +57,6 @@ async def main():
 
     titles = []
     async for title in story_generator.stream_story_titles(
-        num=3,
         story_idea=(story_idea := random.choice(ideas)),
         story_lesson=(story_lesson := random.choice(lessons)),
         story_author=(story_author := random.choice(authors)),
@@ -77,5 +77,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
-    # quart_app.run(host="0.0.0.0", port=5000, debug=True)
+    # asyncio.run(main())
+    quart_app.run(host="0.0.0.0", port=5000, debug=True)
