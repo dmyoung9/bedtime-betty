@@ -1,7 +1,7 @@
 from dataclasses import asdict
 import json
 
-from typing import AsyncGenerator, Optional, Type
+from typing import AsyncGenerator, Optional, Type, Union
 
 from betty.api import OpenAI
 from . import BaseGenerator
@@ -46,8 +46,8 @@ class StoryGenerator(BaseGenerator[Item]):
 
         return info
 
-    def _build_filename(self, obj: Type[Item]) -> str:
-        return f"{obj.__name__.lower()}s.md"
+    def _build_filename(self, obj: Union[Type[Item], str]) -> str:
+        return f"{obj}.md" if isinstance(obj, str) else f"{obj.__name__.lower()}s.md"
 
     async def generate_story_items(self, obj: Type[Item], **kwargs) -> list[Item]:
         return await self.generate_items(obj, **kwargs)

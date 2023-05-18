@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from typing import Any, AsyncGenerator, Generic, Type, TypeVar
+from typing import Any, AsyncGenerator, Generic, Type, TypeVar, Union
 
 T = TypeVar("T")
 
@@ -28,7 +28,7 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
         self.system_prompt = system_prompt
 
     @abstractmethod
-    def _build_filename(self, obj: Type[T]) -> str:
+    def _build_filename(self, obj: Union[Type[T], str]) -> str:
         ...
 
     @abstractmethod
@@ -45,9 +45,11 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
     ) -> list[T]:
         info = self._build_info(**kwargs)
         filename = self._build_filename(obj)
+        system_prompt_filename = self._build_filename(self.system_prompt)
+
         print(f"Generating {filename.split('.')[0]} for {info}...")
 
-        messages = self.api.build_messages(filename, **info)
+        messages = self.api.build_messages(system_prompt_filename, filename, **info)
         items = await self.api.get_json(messages)
 
         return [obj(**item) for item in items]
@@ -59,8 +61,10 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
     ) -> AsyncGenerator[T, None]:
         info = self._build_info(**kwargs)
         filename = self._build_filename(obj)
+        system_prompt_filename = self._build_filename(self.system_prompt)
+
         print(f"Streaming {filename.split('.')[0]} for {info}...")
 
-        messages = self.api.build_messages(filename, **info)
+        messages = self.api.build_messages(system_prompt_filename, filename, **info)
         async for item in self.api.stream_json(messages):
             yield obj(**item)
