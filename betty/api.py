@@ -1,17 +1,28 @@
 import base64
 import contextlib
 from functools import wraps
-from typing import AsyncGenerator, Iterable
+import os
+import json
+from pathlib import Path
+from typing import AsyncGenerator, Iterable, Literal, TypedDict
 
 import openai
 import tiktoken
-import json
+
 
 from betty import BaseAPI
+from betty.prompt import Prompt
 
-from .types import Message, Role
+BASE_PATH = Path(os.getcwd())
+PROMPTS_PATH = BASE_PATH / "prompts"
 
 MODEL = "gpt-3.5-turbo-0301"
+Role = Literal["system", "assistant", "user"]
+
+
+class Message(TypedDict):
+    role: Role
+    content: str
 
 
 def guard_errors(func):
@@ -71,6 +82,17 @@ class OpenAI(BaseAPI):
         """Creates a message with the given role and content."""
 
         return {"role": role, "content": content}
+
+    def build_messages(
+        self, system_prompt_filename: str, prompt_filename: str, **kwargs
+    ) -> Iterable[Message]:
+        system_prompt = Prompt.from_file(PROMPTS_PATH / system_prompt_filename).format()
+        prompt = Prompt.from_file(PROMPTS_PATH / prompt_filename).format(kwargs)
+
+        return [
+            system(system_prompt),
+            user(prompt),
+        ]
 
     @guard_errors
     async def _get_completion(

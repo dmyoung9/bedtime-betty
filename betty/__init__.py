@@ -1,22 +1,18 @@
 from abc import ABCMeta, abstractmethod
 
-import os
-from pathlib import Path
-from typing import Any, AsyncGenerator, Generic, Iterable, Type, TypeVar
-from betty.api import system, user
-
-from betty.prompt import Prompt
-from betty.types import Message
+from typing import Any, AsyncGenerator, Generic, Type, TypeVar
 
 T = TypeVar("T")
-BASE_PATH = Path(os.getcwd())
-PROMPTS_PATH = BASE_PATH / "prompts"
 
 DEFAULT_NUM = 3
 DEFAULT_AGE = 7
 
 
 class BaseAPI(metaclass=ABCMeta):
+    @abstractmethod
+    def build_messages(self, *args, **kwargs):
+        ...
+
     @abstractmethod
     def get_json(self, *args, **kwargs):
         ...
@@ -42,17 +38,6 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
     ) -> dict[str, Any]:
         ...
 
-    def _build_messages(self, prompt_filename: str, **kwargs) -> Iterable[Message]:
-        system_prompt = Prompt.from_file(
-            PROMPTS_PATH / f"{self.system_prompt}.md"
-        ).format()
-        prompt = Prompt.from_file(PROMPTS_PATH / prompt_filename).format(kwargs)
-
-        return [
-            system(system_prompt),
-            user(prompt),
-        ]
-
     async def generate_items(
         self,
         obj: Type[T],
@@ -62,7 +47,7 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
         filename = self._build_filename(obj)
         print(f"Generating {filename.split('.')[0]} for {info}...")
 
-        messages = self._build_messages(filename, **info)
+        messages = self.api.build_messages(filename, **info)
         items = await self.api.get_json(messages)
 
         return [obj(**item) for item in items]
@@ -76,6 +61,6 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
         filename = self._build_filename(obj)
         print(f"Streaming {filename.split('.')[0]} for {info}...")
 
-        messages = self._build_messages(filename, **info)
+        messages = self.api.build_messages(filename, **info)
         async for item in self.api.stream_json(messages):
             yield obj(**item)

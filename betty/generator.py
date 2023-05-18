@@ -18,8 +18,9 @@ def plural(num):
 
 class StoryGenerator(BaseGenerator[Item]):
     def __init__(self, api_key, *args, **kwargs):
-        super().__init__(system_prompt=SYSTEM_PROMPT, *args, **kwargs)
-        self.api = OpenAI(api_key)
+        super().__init__(
+            api=OpenAI(api_key), system_prompt=SYSTEM_PROMPT, *args, **kwargs
+        )
 
     def _build_info(
         self,
@@ -47,6 +48,15 @@ class StoryGenerator(BaseGenerator[Item]):
 
     def _build_filename(self, obj: Type[Item]) -> str:
         return f"{obj.__name__.lower()}s.md"
+
+    async def generate_story_items(self, obj: Type[Item], **kwargs) -> list[Item]:
+        return await self.generate_items(obj, **kwargs)
+
+    async def stream_story_items(
+        self, obj: Type[Item], **kwargs
+    ) -> AsyncGenerator[Item, None]:
+        async for item in self.stream_items(obj, **kwargs):
+            yield item
 
     async def generate_story_ideas(self, **kwargs) -> list[Item]:
         return await self.generate_items(Idea, **kwargs)

@@ -28,7 +28,7 @@ async def generate_ideas():
     if not item_request.examples:
         item_request.examples = Idea.examples(item_request.num)
 
-    return await story_generator.generate_story_ideas(**item_request.dict())
+    return await story_generator.generate_story_items(Idea, **item_request.dict())
 
 
 @ideas_blueprint.websocket("/stream")
@@ -36,7 +36,7 @@ async def stream_ideas():
     story_generator = None
 
     async def parse_and_emit_objects(**kwargs):
-        async for idea in story_generator.stream_story_ideas(**kwargs):
+        async for idea in story_generator.stream_story_items(Idea, **kwargs):
             response = {"type": "item", "data": asdict(idea)}
             await websocket.send(json.dumps(response))
 

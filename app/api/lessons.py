@@ -28,7 +28,7 @@ async def generate_lessons():
     if not item_request.examples:
         item_request.examples = Lesson.examples(item_request.num)
 
-    return await story_generator.generate_story_lessons(**item_request.dict())
+    return await story_generator.generate_story_items(Lesson, **item_request.dict())
 
 
 @lessons_blueprint.websocket("/stream")
@@ -36,7 +36,7 @@ async def stream_lessons():
     story_generator = None
 
     async def parse_and_emit_objects(**kwargs):
-        async for lesson in story_generator.stream_story_lessons(**kwargs):
+        async for lesson in story_generator.stream_story_items(Lesson, **kwargs):
             response = {"type": "item", "data": asdict(lesson)}
             await websocket.send(json.dumps(response))
 
