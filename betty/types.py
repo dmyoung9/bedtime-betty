@@ -2,11 +2,10 @@ from __future__ import annotations
 from abc import ABCMeta
 
 from dataclasses import dataclass
-from typing import Literal, TypedDict, Optional
+from typing import Optional
 
 import emoji as em
 
-Role = Literal["system", "assistant", "user"]
 StoryKeys = [
     "age",
     "num",
@@ -113,11 +112,6 @@ class Paragraph(Item):
 @dataclass
 class Scene(Item):
     description: str
-
-
-class Message(TypedDict):
-    role: Role
-    content: str
 
 
 @dataclass
