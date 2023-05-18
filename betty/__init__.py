@@ -50,7 +50,7 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
     ) -> list[T]:
         info = self._build_info(**kwargs)
         filename = self._build_filename(obj)
-        print(f"Generating from {filename} for {info}...")
+        print(f"Generating {filename.split('.')[0]} for {info}...")
 
         messages = self._build_messages(filename, **info)
         items = await self.api.get_json(messages)
@@ -64,7 +64,7 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
     ) -> AsyncGenerator[T, None]:
         info = self._build_info(**kwargs)
         filename = self._build_filename(obj)
-        print(f"Streaming from {filename} for {info}...")
+        print(f"Streaming {filename.split('.')[0]} for {info}...")
 
         messages = self._build_messages(filename, **info)
         async for item in self.api.stream_json(messages):
