@@ -21,10 +21,6 @@ StoryKeys = [
 ]
 
 
-class API:
-    pass
-
-
 class StoryInfo(TypedDict, total=False):
     age: int
     num: int
