@@ -106,19 +106,21 @@ class Title(Item):
 
 
 @dataclass
-class Paragraph(Item):
+class Page(Item):
+    number: int
+    total: int
     content: str
+    image: Optional[str] = None
 
+    @classmethod
+    def examples(cls, num: int = DEFAULT_NUM):
+        examples = cls._base_examples(num)
+        for idx, example in enumerate(examples):
+            example["number"] = idx + 1
+            example["total"] = num
+            del example["image"]
 
-@dataclass
-class Scene(Item):
-    description: str
-
-
-@dataclass
-class Page:
-    content: str
-    image: Optional[None | str]
+        return examples
 
 
 @dataclass

@@ -8,6 +8,10 @@ from betty.generator import StoryGenerator
 
 
 async def emit_items_to_websocket(story_generator, **kwargs):
+    start = {"type": "start"}
+    await websocket.send(json.dumps(start))
+    print(json.dumps(start))
+
     async for item in story_generator.stream_story_items(**kwargs):
         response = {"type": "item", "data": asdict(item)}
         await websocket.send(json.dumps(response))

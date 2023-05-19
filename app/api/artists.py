@@ -1,17 +1,16 @@
-from quart import Blueprint, request, websocket
+from quart import Blueprint
 
-from .common import handle_generate_request, handle_stream_request
+from app.api.views import GenerateItemsView, StreamItemsView
+
 from ..validation import ArtistRequest
 
 artists_blueprint = Blueprint("artists", __name__)
 
-
-@artists_blueprint.route("/generate", methods=["POST"])
-async def generate_artists():
-    return await handle_generate_request(request, ArtistRequest)
-
-
-@artists_blueprint.websocket("/stream")
-async def stream_artists():
-    while True:
-        await handle_stream_request(websocket, ArtistRequest)
+artists_blueprint.add_url_rule(
+    "/generate", view_func=GenerateItemsView.as_view("generate_artists", ArtistRequest)
+)
+artists_blueprint.add_url_rule(
+    "/stream",
+    view_func=StreamItemsView.as_view("stream_artists", ArtistRequest),
+    is_websocket=True,
+)

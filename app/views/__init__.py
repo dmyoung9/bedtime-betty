@@ -6,10 +6,6 @@ from .ideas import ideas_blueprint
 from .lessons import lessons_blueprint
 from .titles import titles_blueprint
 from .pages import pages_blueprint
-from .images import images_blueprint
-from .descriptions import descriptions_blueprint
-
-# from .stories import stories_blueprint
 
 api_blueprint = Blueprint("api", __name__)
 
@@ -19,6 +15,3 @@ api_blueprint.register_blueprint(authors_blueprint, url_prefix="/authors")
 api_blueprint.register_blueprint(artists_blueprint, url_prefix="/artists")
 api_blueprint.register_blueprint(titles_blueprint, url_prefix="/titles")
 api_blueprint.register_blueprint(pages_blueprint, url_prefix="/pages")
-api_blueprint.register_blueprint(images_blueprint, url_prefix="/images")
-api_blueprint.register_blueprint(descriptions_blueprint, url_prefix="/descriptions")
-# api_blueprint.register_blueprint(stories_blueprint, url_prefix="/stories")
