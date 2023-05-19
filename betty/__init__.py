@@ -1,25 +1,13 @@
 from abc import ABCMeta, abstractmethod
 
+from betty.api import BaseAPI
+
 from typing import Any, AsyncGenerator, Generic, Type, TypeVar, Union
 
 T = TypeVar("T")
 
 DEFAULT_NUM = 3
 DEFAULT_AGE = 7
-
-
-class BaseAPI(metaclass=ABCMeta):
-    @abstractmethod
-    def build_messages(self, *args, **kwargs):
-        ...
-
-    @abstractmethod
-    def get_json(self, *args, **kwargs):
-        ...
-
-    @abstractmethod
-    def stream_json(self, *args, **kwargs):
-        ...
 
 
 class BaseGenerator(Generic[T], metaclass=ABCMeta):
@@ -49,8 +37,8 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
 
         print(f"Generating {filename.split('.')[0]} for {info}...")
 
-        messages = self.api.build_messages(system_prompt_filename, filename, **info)
-        items = await self.api.get_json(messages, temperature=1.1)
+        messages = self.api.build_messages(filename, system_prompt_filename, **info)
+        items = await self.api.get_json(messages)
 
         return [obj(**item) for item in items]
 
@@ -65,6 +53,6 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
 
         print(f"Streaming {filename.split('.')[0]} for {info}...")
 
-        messages = self.api.build_messages(system_prompt_filename, filename, **info)
-        async for item in self.api.stream_json(messages, temperature=1.1):
+        messages = self.api.build_messages(filename, system_prompt_filename, **info)
+        async for item in self.api.stream_json(messages):
             yield obj(**item)
