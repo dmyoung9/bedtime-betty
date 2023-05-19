@@ -19,17 +19,16 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
     @abstractmethod
     def _build_info(
         self,
-        *args,
         **kwargs,
     ) -> dict[str, Any]:
         ...
 
     @abstractmethod
-    async def _generate(self, obj, *args, **kwargs):
+    async def _generate(self, obj, filename, system_prompt_filename, **kwargs):
         ...
 
     @abstractmethod
-    async def _stream(self, obj, *args, **kwargs):
+    async def _stream(self, obj, filename, system_prompt_filename, **kwargs):
         ...
 
     async def generate_items(
@@ -37,13 +36,15 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
         obj: Type[T],
         **kwargs,
     ) -> list[T]:
-        info = self._build_info(obj=obj, **kwargs)
+        info = self._build_info(**kwargs)
         filename = self._build_filename(obj)
         system_prompt_filename = self._build_filename(self.system_prompt)
 
         print(f"Generating {filename.split('.')[0]} for {info}...")
 
-        return await self._generate(obj, filename, system_prompt_filename, **info)
+        items = await self._generate(obj, filename, system_prompt_filename, **info)
+
+        return [obj(**item) for item in items]
 
     async def stream_items(
         self,

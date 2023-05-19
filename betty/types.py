@@ -127,3 +127,8 @@ class Page(Item):
 class Story:
     title: str
     pages: list[Page]
+
+
+@dataclass
+class Image(Item):
+    url: str

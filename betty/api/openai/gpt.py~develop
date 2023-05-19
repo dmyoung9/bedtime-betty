@@ -1,4 +1,4 @@
-# import ast
+import ast
 import json
 import re
 from typing import AsyncGenerator, Iterable, Literal, Optional, TypedDict
@@ -165,10 +165,10 @@ class CompletionAPI(BaseAPI):
                 elif char == "}":
                     brace_count -= 1
                     if brace_count == 0:
-                        # try:
-                        yield json.loads(buffer[start_position:])
-                        # except json.JSONDecodeError:
-                        #     yield ast.literal_eval(buffer[start_position:])
+                        try:
+                            yield json.loads(buffer[start_position:])
+                        except json.JSONDecodeError:
+                            yield ast.literal_eval(buffer[start_position:])
 
                         start_position = -1
                         buffer = buffer[len(buffer) :]  # Keep the buffer clean
