@@ -1,5 +1,6 @@
+import ast
 import base64
-import contextlib
+
 from functools import wraps
 import os
 import json
@@ -175,8 +176,11 @@ class OpenAI(BaseAPI):
                 elif char == "}":
                     brace_count -= 1
                     if brace_count == 0:
-                        with contextlib.suppress(json.JSONDecodeError):
+                        try:
                             yield json.loads(buffer[start_position:])
+                        except json.JSONDecodeError:
+                            yield ast.literal_eval(buffer[start_position:])
+
                         start_position = -1
                         buffer = buffer[len(buffer) :]  # Keep the buffer clean
 

@@ -1,17 +1,16 @@
-from quart import Blueprint, request, websocket
+from quart import Blueprint
 
-from .common import handle_generate_request, handle_stream_request
+from app.api.views import GenerateItemsView, StreamItemsView
+
 from ..validation import TitleRequest
 
 titles_blueprint = Blueprint("titles", __name__)
 
-
-@titles_blueprint.route("/generate", methods=["POST"])
-async def generate_titles():
-    return await handle_generate_request(request, TitleRequest)
-
-
-@titles_blueprint.websocket("/stream")
-async def stream_titles():
-    while True:
-        await handle_stream_request(websocket, TitleRequest)
+titles_blueprint.add_url_rule(
+    "/generate", view_func=GenerateItemsView.as_view("generate_titles", TitleRequest)
+)
+titles_blueprint.add_url_rule(
+    "/stream",
+    view_func=StreamItemsView.as_view("stream_titles", TitleRequest),
+    is_websocket=True,
+)

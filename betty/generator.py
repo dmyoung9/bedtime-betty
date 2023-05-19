@@ -25,11 +25,13 @@ class StoryGenerator(BaseGenerator[Item]):
         self,
         **kwargs,
     ):
-        num = kwargs.get("num", DEFAULT_NUM)
-
-        info = {"plural": plural(num)}
-        if not kwargs.get("examples"):
-            info["examples"] = kwargs.get("obj", Item).examples(num)
+        obj = kwargs.pop("obj", Item)
+        info = {
+            "num": (num := kwargs.get("num", DEFAULT_NUM)),
+            "age": kwargs.get("age", DEFAULT_AGE),
+            "examples": kwargs.get("examples", obj.examples(num)),
+            "plural": plural(num),
+        }
 
         for k, v in kwargs.items():
             if isinstance(v, Item):

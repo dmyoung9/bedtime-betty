@@ -50,7 +50,7 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
         print(f"Generating {filename.split('.')[0]} for {info}...")
 
         messages = self.api.build_messages(system_prompt_filename, filename, **info)
-        items = await self.api.get_json(messages)
+        items = await self.api.get_json(messages, temperature=1.1)
 
         return [obj(**item) for item in items]
 
@@ -59,12 +59,12 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
         obj: Type[T],
         **kwargs,
     ) -> AsyncGenerator[T, None]:
-        info = self._build_info(**kwargs)
+        info = self._build_info(obj=obj, **kwargs)
         filename = self._build_filename(obj)
         system_prompt_filename = self._build_filename(self.system_prompt)
 
         print(f"Streaming {filename.split('.')[0]} for {info}...")
 
         messages = self.api.build_messages(system_prompt_filename, filename, **info)
-        async for item in self.api.stream_json(messages):
+        async for item in self.api.stream_json(messages, temperature=1.1):
             yield obj(**item)

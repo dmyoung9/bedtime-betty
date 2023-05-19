@@ -5,6 +5,7 @@ from .authors import authors_blueprint
 from .ideas import ideas_blueprint
 from .lessons import lessons_blueprint
 from .titles import titles_blueprint
+from .pages import pages_blueprint
 
 api_blueprint = Blueprint("api", __name__)
 
@@ -13,3 +14,4 @@ api_blueprint.register_blueprint(lessons_blueprint, url_prefix="/lessons")
 api_blueprint.register_blueprint(authors_blueprint, url_prefix="/authors")
 api_blueprint.register_blueprint(artists_blueprint, url_prefix="/artists")
 api_blueprint.register_blueprint(titles_blueprint, url_prefix="/titles")
+api_blueprint.register_blueprint(pages_blueprint, url_prefix="/pages")

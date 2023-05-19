@@ -8,4 +8,4 @@ Example{plural}:
 {examples}
 ```
 
-Please only respond with an unformatted JSON array of {num} author{plural}, as in the example{plural}. `author_style` should be a single string, containing a comma-separated list of styles.
+Please only respond with a properly formatted JSON array of {num} author{plural}, as in the example{plural}. `author_style` should be a single string, containing a comma-separated list of styles.

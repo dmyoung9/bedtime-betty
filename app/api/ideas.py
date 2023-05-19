@@ -1,17 +1,16 @@
-from quart import Blueprint, request, websocket
+from quart import Blueprint
 
-from .common import handle_generate_request, handle_stream_request
+from app.api.views import GenerateItemsView, StreamItemsView
+
 from ..validation import IdeaRequest
 
 ideas_blueprint = Blueprint("ideas", __name__)
 
-
-@ideas_blueprint.route("/generate", methods=["POST"])
-async def generate_ideas():
-    return await handle_generate_request(request, IdeaRequest)
-
-
-@ideas_blueprint.websocket("/stream")
-async def stream_ideas():
-    while True:
-        await handle_stream_request(websocket, IdeaRequest)
+ideas_blueprint.add_url_rule(
+    "/generate", view_func=GenerateItemsView.as_view("generate_ideas", IdeaRequest)
+)
+ideas_blueprint.add_url_rule(
+    "/stream",
+    view_func=StreamItemsView.as_view("stream_ideas", IdeaRequest),
+    is_websocket=True,
+)

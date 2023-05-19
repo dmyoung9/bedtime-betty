@@ -1,17 +1,17 @@
-from quart import Blueprint, request, websocket
+from quart import Blueprint
 
-from .common import handle_generate_request, handle_stream_request
+from app.api.views import GenerateItemsView, StreamItemsView
+
 from ..validation import AuthorRequest
 
 authors_blueprint = Blueprint("authors", __name__)
 
-
-@authors_blueprint.route("/generate", methods=["POST"])
-async def generate_authors():
-    return await handle_generate_request(request, AuthorRequest)
-
-
-@authors_blueprint.websocket("/stream")
-async def stream_authors():
-    while True:
-        await handle_stream_request(websocket, AuthorRequest)
+authors_blueprint.add_url_rule(
+    "/generate",
+    view_func=GenerateItemsView.as_view("generate_authors", AuthorRequest),
+)
+authors_blueprint.add_url_rule(
+    "/stream",
+    view_func=StreamItemsView.as_view("stream_authors", AuthorRequest),
+    is_websocket=True,
+)
