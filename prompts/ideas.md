@@ -8,4 +8,4 @@ Example{plural}:
 {examples}
 ```
 
-Please only respond with a properly formatted JSON array of {num} idea{plural}, as in the example{plural}. `idea` should be a single string, containing only the story idea. `emoji` should be a single string, containing only emoji. **Do not** repeat the emoji in the idea{plural}.
+Please only respond with an unformatted JSON array of {num} idea{plural}, as in the example{plural}. `idea` should be a single string, containing only the story idea. `emoji` should be a single string, containing only emoji. **Do not** repeat the emoji in the idea{plural}.

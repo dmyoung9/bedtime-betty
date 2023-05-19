@@ -6,8 +6,8 @@ Please give {num} short description{plural} that capture the key elements of the
 
 Example{plural}:
 
-```json
+```
 {examples}
 ```
 
-Please only respond with a properly formatted JSON array of {num} author{plural}, as in the example{plural}. **Do not** include anything but the description.
+Please only respond with an unformatted JSON array of {num} author{plural}, as in the example{plural}. **Do not** include anything but the description.
