@@ -132,3 +132,8 @@ class Story:
 @dataclass
 class Image(Item):
     url: str
+
+
+@dataclass
+class Description(Item):
+    content: str
