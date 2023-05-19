@@ -1,8 +1,9 @@
 from dataclasses import asdict
 
+import json
 from typing import AsyncGenerator, Type, Union
 
-from betty.api import OpenAI
+from betty.api.openai.gpt import CompletionAPI
 from . import BaseGenerator
 from .types import Item
 
@@ -18,7 +19,7 @@ def plural(num):
 class StoryGenerator(BaseGenerator[Item]):
     def __init__(self, api_key, *args, **kwargs):
         super().__init__(
-            api=OpenAI(api_key), system_prompt=SYSTEM_PROMPT, *args, **kwargs
+            api=CompletionAPI(api_key), system_prompt=SYSTEM_PROMPT, *args, **kwargs
         )
 
     def _build_info(
@@ -29,7 +30,7 @@ class StoryGenerator(BaseGenerator[Item]):
         info = {
             "num": (num := kwargs.get("num", DEFAULT_NUM)),
             "age": kwargs.get("age", DEFAULT_AGE),
-            "examples": kwargs.get("examples", obj.examples(num)),
+            "examples": json.dumps(kwargs.get("examples", obj.examples(num))),
             "plural": plural(num),
         }
 

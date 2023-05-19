@@ -6,4 +6,4 @@ Example:
 {examples}
 ```
 
-Please only respond with a properly formatted JSON array of paragraph{plural}, as in the example{plural}.
+Please only respond with an unformatted JSON array of paragraph{plural}, as in the example{plural}.
