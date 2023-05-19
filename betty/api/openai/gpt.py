@@ -1,3 +1,4 @@
+import ast
 import json
 from typing import AsyncGenerator, Iterable, Literal, Optional, TypedDict
 
@@ -113,7 +114,7 @@ class CompletionAPI(BaseAPI):
         messages: Iterable[Message],
         model: str = MODEL,
         temperature: float = 1,
-    ):
+    ) -> list[dict]:
         """Streams the generated text in chunks based on the given messages."""
 
         response = await self._get_completion(
@@ -167,12 +168,10 @@ class CompletionAPI(BaseAPI):
                 elif char == "}":
                     brace_count -= 1
                     if brace_count == 0:
-                        yield json.loads(buffer[start_position:])
-
-                        # try:
-                        #     yield json.loads(buffer[start_position:])
-                        # except json.JSONDecodeError:
-                        #     yield ast.literal_eval(buffer[start_position:])
+                        try:
+                            yield json.loads(buffer[start_position:])
+                        except json.JSONDecodeError:
+                            yield ast.literal_eval(buffer[start_position:])
 
                         start_position = -1
                         buffer = buffer[len(buffer) :]  # Keep the buffer clean

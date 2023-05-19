@@ -11,7 +11,7 @@ import random  # noqa: E402
 import os  # noqa: E402
 
 # from app import quart_app  # noqa: E402
-from betty.generator import StoryGenerator  # noqa: E402
+from betty.generator.story import StoryGenerator  # noqa: E402
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 CLIENT = CompletionAPI(OPENAI_API_KEY)

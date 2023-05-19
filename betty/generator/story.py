@@ -3,9 +3,11 @@ from dataclasses import asdict
 import json
 from typing import AsyncGenerator, Type, Union
 
+from betty.api.openai.dalle import ImageAPI
 from betty.api.openai.gpt import CompletionAPI
 from . import BaseGenerator
-from .types import Item
+from ..types import Image, Item
+from ..prompt import Prompt
 
 SYSTEM_PROMPT = "bedtime_betty"
 DEFAULT_NUM = 3
@@ -18,9 +20,9 @@ def plural(num):
 
 class StoryGenerator(BaseGenerator[Item]):
     def __init__(self, api_key, *args, **kwargs):
-        super().__init__(
-            api=CompletionAPI(api_key), system_prompt=SYSTEM_PROMPT, *args, **kwargs
-        )
+        super().__init__(system_prompt=SYSTEM_PROMPT, *args, **kwargs)
+        self.completion_api = CompletionAPI(api_key)
+        self.image_api = ImageAPI(api_key)
 
     def _build_info(
         self,
@@ -44,6 +46,23 @@ class StoryGenerator(BaseGenerator[Item]):
 
     def _build_filename(self, obj: Union[Type[Item], str]) -> str:
         return f"{obj}.md" if isinstance(obj, str) else f"{obj.__name__.lower()}s.md"
+
+    async def _generate(self, obj, filename, system_prompt_filename, **kwargs):
+        if obj == Image:
+            prompt = Prompt.from_file(filename).format(kwargs)
+            return await self.image_api.get_json(prompt, **kwargs)
+
+        messages = self.completion_api.build_messages(
+            filename, system_prompt_filename, **kwargs
+        )
+        return await self.completion_api.get_json(messages)
+
+    async def _stream(self, obj, filename, system_prompt_filename, **kwargs):
+        messages = self.completion_api.build_messages(
+            filename, system_prompt_filename, **kwargs
+        )
+        async for item in self.completion_api.stream_json(messages):
+            yield item
 
     async def generate_story_items(self, obj: Type[Item], **kwargs) -> list[Item]:
         return await self.generate_items(obj, **kwargs)

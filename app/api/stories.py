@@ -3,7 +3,7 @@ import json
 
 from quart import Blueprint, request, jsonify, websocket
 
-from betty.generator import StoryGenerator
+from betty.generator.story import StoryGenerator
 
 from ..database import db
 from ..database.models import Artist, Author, Story, Theme, Title, Lesson

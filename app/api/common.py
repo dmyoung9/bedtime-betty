@@ -4,7 +4,7 @@ import json
 from pydantic import ValidationError
 from quart import websocket
 
-from betty.generator import StoryGenerator
+from betty.generator.story import StoryGenerator
 
 
 async def emit_items_to_websocket(story_generator, **kwargs):

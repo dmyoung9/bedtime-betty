@@ -1,7 +1,7 @@
 from typing import Optional, Type
 from pydantic import BaseModel
 
-from betty.types import Artist, Author, Idea, Item, Lesson, Page, Title
+from betty.types import Artist, Author, Idea, Image, Item, Lesson, Page, Title
 
 DEFAULT_NUM = 3
 DEFAULT_AGE = 7
@@ -51,3 +51,10 @@ class PageRequest(ItemRequest):
     story_lesson: Lesson
     story_author: Author
     story_title: Title
+
+
+class ImageRequest(ItemRequest):
+    obj: Type[Item] = Image
+    examples: Optional[list[Item]] = Image.examples(DEFAULT_NUM)
+    story_artist: Artist
+    content: str
