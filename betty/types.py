@@ -6,6 +6,7 @@ from typing import Optional
 
 import emoji as em
 
+DEFAULT_NUM = 3
 StoryKeys = [
     "age",
     "num",
@@ -30,14 +31,14 @@ class Item(metaclass=ABCMeta):
         return f"{cls.__name__.lower()}s"
 
     @classmethod
-    def _base_examples(cls, num):
+    def _base_examples(cls, num: int = DEFAULT_NUM):
         return [
             dict.fromkeys(cls.__dataclass_fields__.keys(), "...")
             for _ in range(int((num / 2) + 1))
         ]
 
     @classmethod
-    def examples(cls, num):
+    def examples(cls, num: int = DEFAULT_NUM):
         return cls._base_examples(num)
 
 
@@ -47,7 +48,7 @@ class Artist(Item):
     artist_style: str
 
     @classmethod
-    def examples(cls, num):
+    def examples(cls, num: int = DEFAULT_NUM):
         examples = cls._base_examples(num)
         for example in examples:
             example["artist_style"] = "..., ..., ..."
@@ -61,7 +62,7 @@ class Author(Item):
     author_style: str
 
     @classmethod
-    def examples(cls, num):
+    def examples(cls, num: int = DEFAULT_NUM):
         examples = cls._base_examples(num)
         for example in examples:
             example["author_style"] = "..., ..., ..."
@@ -85,7 +86,7 @@ class Idea(Item):
             )
 
     @classmethod
-    def examples(cls, num):
+    def examples(cls, num: int = DEFAULT_NUM):
         examples = cls._base_examples(num)
         for example in examples:
             example["idea"] = "story idea"
