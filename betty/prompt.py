@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Optional
+
+
+BASE_PATH = Path(os.getcwd())
+PROMPTS_PATH = BASE_PATH / "prompts"
 
 
 class Prompt:
@@ -13,10 +18,10 @@ class Prompt:
         self.prompt = prompt
 
     @staticmethod
-    def from_file(path: str | Path) -> Prompt:
+    def from_file(filename: str) -> Prompt:
         """Create a Prompt instance by reading the prompt text from a file."""
 
-        prompt = Path(path).read_text(encoding="utf-8")
+        prompt = Path(PROMPTS_PATH / filename).read_text(encoding="utf-8")
         return Prompt(prompt)
 
     def format(self, info: Optional[dict[str, Any]] = None):

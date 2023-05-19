@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 
 from app import quart_app
-from betty.api import OpenAI
+from betty.api.openai.gpt import CompletionAPI
 from betty.types import Author, Idea, Lesson, Page, Title
 
 load_dotenv()
@@ -14,7 +14,7 @@ import os  # noqa: E402
 from betty.generator import StoryGenerator  # noqa: E402
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-CLIENT = OpenAI(OPENAI_API_KEY)
+CLIENT = CompletionAPI(OPENAI_API_KEY)
 story_generator = StoryGenerator(OPENAI_API_KEY)
 
 
