@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from app import quart_app
+from backend import quart_app
 from betty.api.openai.gpt import CompletionAPI
 from betty.types import Author, Idea, Lesson, Page, Title
 
