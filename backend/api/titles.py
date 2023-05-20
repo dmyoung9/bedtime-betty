@@ -1,6 +1,6 @@
 from quart import Blueprint
 
-from app.api.views import GenerateItemsView, StreamItemsView
+from backend.api.views import GenerateItemsView, StreamItemsView
 
 from ..validation import TitleRequest
 

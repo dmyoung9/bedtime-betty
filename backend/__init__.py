@@ -1,5 +1,5 @@
 from typing import Union
-from quart import Quart
+from quart import Quart, render_template
 
 # from quart_cors import cors
 
@@ -37,20 +37,20 @@ def create_app(config_name: Union[object, str]) -> Quart:
 quart_app = create_app(Config)
 
 
-# @quart_app.route("/", methods=["GET"])
-# async def index():
-#     return await render_template("/base.html")
+@quart_app.route("/", methods=["GET"])
+async def index():
+    return await render_template("/base.html")
 
 
-# @quart_app.route("/stories", methods=["GET"])
-# async def stories():
-#     return await render_template(
-#         "/stories.html",
-#         base_api_url=Config.BASE_API_URL,
-#         ssl_enabled=Config.SSL_ENABLED,
-#     )
+@quart_app.route("/stories", methods=["GET"])
+async def stories():
+    return await render_template(
+        "/stories.html",
+        base_api_url=Config.BASE_API_URL,
+        ssl_enabled=Config.SSL_ENABLED,
+    )
 
 
-# @quart_app.route("/settings", methods=["GET"])
-# async def settings():
-#     return await render_template("/settings.html")
+@quart_app.route("/settings", methods=["GET"])
+async def settings():
+    return await render_template("/settings.html")

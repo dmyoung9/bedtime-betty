@@ -100,10 +100,7 @@ async function slideOutOptions(chosenIndex) {
 }
 
 function formatThemeButton(button, theme) {
-    button.innerHTML = `${theme.emoji}<br>${theme.story_theme}`;
-    button.style.backgroundColor = `${theme.color}`;
-    button.style.color = `${getContrastTextColor(theme.color)}`;
-    button.style.fontFamily = `${theme.font}`;
+    button.innerHTML = `${theme.emoji}<br>${theme.idea}`;
 
     return button
 }
@@ -167,7 +164,7 @@ function buildRequestData(num) {
     const minAge = localStorage.getItem('minAge') || '';
     const maxAge = localStorage.getItem('maxAge') || '';
 
-    return { age_min: minAge, age_max: maxAge, num: num };
+    return { age: maxAge, num: num };
 }
 
 function buildStoryInfo(totalParagraphs = 7) {
@@ -181,7 +178,6 @@ function buildStoryInfo(totalParagraphs = 7) {
 async function fetchOptionsFromWebsocket(url, label, formatFunc = null, actionFunc = null, num = 7, data = null, end = false, spinner = true) {
     const apiKey = localStorage.getItem('apiKey') || '';
     const requestData = data || buildRequestData(num);
-    requestData['api_key'] = apiKey;
 
     return new Promise((resolve, reject) => {
         const socket = new WebSocket(url);
@@ -191,7 +187,7 @@ async function fetchOptionsFromWebsocket(url, label, formatFunc = null, actionFu
             if (spinner) {
                 showSpinner("loadingSpinner", "loadingSpinnerLabel", label);
             }
-            var request_msg = { type: 'request', data: requestData }
+            var request_msg = { type: 'request', api_key: apiKey, data: requestData }
             socket.send(JSON.stringify(request_msg));
         });
 
@@ -200,6 +196,7 @@ async function fetchOptionsFromWebsocket(url, label, formatFunc = null, actionFu
             console.log(data)
             if (data.type === 'end') {
                 socket.close();
+                hideSpinner("loadingSpinner");
                 resolve();
             } else if (data.type === 'item') {
                 await addOption(data.data, formatFunc, actionFunc, end);
@@ -255,17 +252,24 @@ async function buildStoryDetails(theme, idx) {
     await slideOutOptions(-1);
 
     showSpinner("loadingSpinner", "loadingSpinnerLabel", "Ok, let me think about it...");
-    let lessons = await postToUrl(`${base_api_url}/api/stories/lessons`, num = 10);
+    let lessons = await postToUrl(`${base_api_url}/api/lessons/generate`, num = 10);
 
     const randomLesson = lessons[Math.floor(Math.random() * lessons.length)];
     chosenLesson = randomLesson;
     console.log(randomLesson);
 
-    let titleRequestData = buildRequestData(5);
-    titleRequestData['story_theme'] = chosenTheme.story_theme;
-    titleRequestData['story_lesson'] = chosenLesson;
+    let authors = await postToUrl(`${base_api_url}/api/authors/generate`, num = 5);
+    const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
+    chosenAuthor = randomAuthor;
+    showSpinner("loadingSpinner", "loadingSpinnerLabel", "Yep, that should do nicely...");
+    console.log(randomAuthor);
 
-    let titles = await postToUrl(`${base_api_url}/api/stories/titles`, num = 5, requestData = titleRequestData);
+    let titleRequestData = buildRequestData(5);
+    titleRequestData['story_idea'] = JSON.stringify(chosenTheme);
+    titleRequestData['story_lesson'] = chosenLesson;
+    titleRequestData['story_author'] = chosenAuthor;
+
+    let titles = await postToUrl(`${base_api_url}/api/titles/generate`, num = 5, requestData = titleRequestData);
     const randomTitle = titles[Math.floor(Math.random() * titles.length)];
     chosenTitle = randomTitle;
 
@@ -274,20 +278,13 @@ async function buildStoryDetails(theme, idx) {
     addOption(randomLesson, formatLessonButton, null, true);
     console.log(randomTitle);
 
-    let authors = await postToUrl(`${base_api_url}/api/stories/authors`, num = 5);
-    const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
-    chosenAuthor = randomAuthor;
-    showSpinner("loadingSpinner", "loadingSpinnerLabel", "Yep, that should do nicely...");
+    // showSpinner("loadingSpinner", "loadingSpinnerLabel", "One more thing...");
+    // let artists = await postToUrl(`${base_api_url}/api/stories/artists`, num = 5);
+    // const randomArtist = artists[Math.floor(Math.random() * artists.length)];
+    // chosenArtist = randomArtist;
+    // addOption(randomArtist, formatArtistButton, null, true);
+    // console.log(randomArtist);
     addOption(randomAuthor, formatAuthorButton, null, true);
-    console.log(randomAuthor);
-
-    showSpinner("loadingSpinner", "loadingSpinnerLabel", "One more thing...");
-    let artists = await postToUrl(`${base_api_url}/api/stories/artists`, num = 5);
-    const randomArtist = artists[Math.floor(Math.random() * artists.length)];
-    chosenArtist = randomArtist;
-    addOption(randomArtist, formatArtistButton, null, true);
-    console.log(randomArtist);
-
     setTimeout(() => { hideSpinner("loadingSpinner"); }, 50);
 
     readButton.classList.add('loaded');
@@ -321,7 +318,7 @@ function getContrastTextColor(hexColor) {
 async function getThemes() {
     nextButton.classList.remove('loaded');
     readButton.classList.remove('loaded');
-    await fetchOptionsFromWebsocket(`${ws_api_url}/api/stories/themes/stream`, "Let's come up with some ideas...", formatThemeButton, buildStoryDetails);
+    await fetchOptionsFromWebsocket(`${ws_api_url}/api/ideas/stream`, "Let's come up with some ideas...", formatThemeButton, buildStoryDetails);
 }
 
 
