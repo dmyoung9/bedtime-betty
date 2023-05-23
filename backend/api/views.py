@@ -1,4 +1,4 @@
-from quart import request, websocket, views
+from quart import views
 
 from .common import handle_generate_request, handle_stream_request
 
@@ -16,7 +16,8 @@ class BaseModelView(views.MethodView):
 
 class GenerateItemsView(BaseModelView):
     async def post(self):
-        return await handle_generate_request(request, self.request_model)
+        # print(request.url)
+        return await handle_generate_request(self.request_model)
 
 
 class StreamItemsView(views.View):
@@ -26,8 +27,8 @@ class StreamItemsView(views.View):
         self.request_model = request_model
 
     async def dispatch_request(self, **kwargs):
-        return await self.websocket(websocket)
+        return await self.websocket()
 
-    async def websocket(self, websocket):
+    async def websocket(self):
         while True:
-            await handle_stream_request(websocket, self.request_model)
+            await handle_stream_request(self.request_model)

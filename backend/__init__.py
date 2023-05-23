@@ -1,11 +1,13 @@
-from typing import Union
-from quart import Quart, render_template
+import asyncio
 
-# from quart_cors import cors
+from typing import Union
+from quart import Quart, render_template, send_from_directory
+
+from quart_cors import cors
 
 from .api import api_blueprint
 
-# from .database import db
+from .database import db
 from .config import Config
 
 import mimetypes
@@ -15,36 +17,36 @@ mimetypes.add_type("text/css", ".css")
 
 
 CORS_CONFIG = {
-    "allow_origin": [
-        "http://bedtime-betty.com",
-        "http://www.bedtime-betty.com",
-        "127.0.0.1",
-    ],
-    "allow_headers": ["Content-Type", "Authorization"],
+    "allow_origin": ["*"],
+    "allow_headers": ["*"],
 }
 
 
-def create_app(config_name: Union[object, str]) -> Quart:
+async def create_app(config_name: Union[object, str]) -> Quart:
     app = Quart(__name__)
     app.config.from_object(config_name)
 
     # app = cors(app, **CORS_CONFIG)
 
-    # db.init_app(app)
-    # async with app.app_context():
-    #     db.create_all()
+    db.init_app(app)
+    async with app.app_context():
+        db.create_all()
 
     app.register_blueprint(api_blueprint, url_prefix="/api")
 
     return app
 
 
-quart_app = create_app(Config)
+quart_app = asyncio.run(create_app(Config))
 
 
 @quart_app.route("/", methods=["GET"])
 async def index():
-    return await render_template("/base.html")
+    return await render_template(
+        "/base.html",
+        base_api_url=Config.BASE_API_URL,
+        ssl_enabled=Config.SSL_ENABLED,
+    )
 
 
 @quart_app.route("/stories", methods=["GET"])
@@ -69,10 +71,4 @@ async def settings():
 
 # @quart_app.route("/static/<path:path>", methods=["GET"])
 # async def javascript_file(path):
-#     return await send_from_directory("backend/static", path,
-#         mimetype="application/javascript")
-=======
-@quart_app.route("/settings", methods=["GET"])
-async def settings():
-    return await render_template("/settings.html")
->>>>>>> :truck: - Rename backend:backend/__init__.py
+#     return await send_from_directory("backend/static", path, mimetype="application/javascript")

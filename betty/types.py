@@ -7,18 +7,6 @@ from typing import Optional
 import emoji as em
 
 DEFAULT_NUM = 3
-StoryKeys = [
-    "age",
-    "num",
-    "plural",
-    "examples",
-    "story_idea",
-    "story_lesson",
-    "story_author",
-    "story_artist",
-    "story_title",
-    "story_paragraph",
-]
 
 
 @dataclass
@@ -33,7 +21,7 @@ class Item(metaclass=ABCMeta):
     @classmethod
     def _base_examples(cls, num: int = DEFAULT_NUM):
         return [
-            dict.fromkeys(cls.__dataclass_fields__.keys(), "...")
+            {key: f"{{{key}}}" for key in cls.__dataclass_fields__.keys()}
             for _ in range(int((num / 2) + 1))
         ]
 
@@ -51,7 +39,7 @@ class Artist(Item):
     def examples(cls, num: int = DEFAULT_NUM):
         examples = cls._base_examples(num)
         for example in examples:
-            example["artist_style"] = "..., ..., ..."
+            example["artist_style"] = ", ".join("{{artist_style}}" for _ in range(3))
 
         return examples
 
@@ -65,7 +53,7 @@ class Author(Item):
     def examples(cls, num: int = DEFAULT_NUM):
         examples = cls._base_examples(num)
         for example in examples:
-            example["author_style"] = "..., ..., ..."
+            example["author_style"] = ", ".join("{{author_style}}" for _ in range(3))
 
         return examples
 
@@ -89,8 +77,8 @@ class Idea(Item):
     def examples(cls, num: int = DEFAULT_NUM):
         examples = cls._base_examples(num)
         for example in examples:
-            example["idea"] = "story idea"
-            example["emoji"] = "1️⃣2️⃣3️⃣"
+            example["idea"] = "{{idea}}"
+            example["emoji"] = "1️⃣2️⃣3️⃣4️⃣5️⃣"
 
         return examples
 
@@ -125,8 +113,13 @@ class Page(Item):
 
 @dataclass
 class Story:
-    title: str
-    pages: list[Page]
+    age: int
+    story_idea: Idea
+    story_lesson: Lesson
+    story_author: Author
+    story_artist: Artist
+    story_title: Title
+    pages: Optional[list[Page]] = None
 
 
 @dataclass
