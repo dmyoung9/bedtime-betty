@@ -19,16 +19,17 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
     @abstractmethod
     def _build_info(
         self,
+        *args,
         **kwargs,
     ) -> dict[str, Any]:
         ...
 
     @abstractmethod
-    async def _generate(self, obj, filename, system_prompt_filename, **kwargs):
+    async def _generate(self, obj, *args, **kwargs):
         ...
 
     @abstractmethod
-    async def _stream(self, obj, filename, system_prompt_filename, **kwargs):
+    async def _stream(self, obj, *args, **kwargs):
         ...
 
     async def generate_items(
@@ -36,7 +37,7 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
         obj: Type[T],
         **kwargs,
     ) -> list[T]:
-        info = self._build_info(**kwargs)
+        info = self._build_info(obj=obj, **kwargs)
         filename = self._build_filename(obj)
         system_prompt_filename = self._build_filename(self.system_prompt)
 

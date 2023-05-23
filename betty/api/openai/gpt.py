@@ -1,5 +1,6 @@
 import ast
 import json
+import re
 from typing import AsyncGenerator, Iterable, Literal, Optional, TypedDict
 
 import openai
@@ -72,7 +73,7 @@ class CompletionAPI(BaseAPI):
 
         return messages
 
-    @guard_errors
+    # @guard_errors
     async def _get_completion(
         self,
         messages: Iterable[Message],
@@ -90,7 +91,7 @@ class CompletionAPI(BaseAPI):
 
         return response["choices"][0]["message"]["content"]
 
-    @guard_errors
+    # @guard_errors
     async def _stream_completion(
         self,
         messages: Iterable[Message],
@@ -123,22 +124,15 @@ class CompletionAPI(BaseAPI):
             temperature=temperature,
         )
 
-        return json.loads(response)
+        if json_match := re.findall(r"(?:```)(?:[a-z]*\n)?(.*?)(?:```)", response, re.DOTALL):
+            response = json_match[0]
+
         # try:
-        #     try:
-        #         return json.loads(response)
-        #     except json.JSONDecodeError:
-        #         return ast.literal_eval(response)
-        #     except Exception as e:
-        #         raise ValueError("Response is not well-formed.") from e
-        # except ValueError:
-        #     json_match = re.findall(r"(?:```)(?:[a-z]*\n)?(.*?)(?:```)", response)
-        #     try:
-        #         return json.loads(json_match[0])
-        #     except json.JSONDecodeError:
-        #         return ast.literal_eval(json_match[0])
-        #     except Exception as e:
-        #         raise ValueError("Response is not well-formed.") from e
+        return json.loads(response)
+        # except json.JSONDecodeError:
+        #     return ast.literal_eval(response)
+        # except SyntaxError as e:
+        #     raise ValueError("Response is not well-formed.") from e
 
     async def stream_json(
         self,
@@ -168,10 +162,10 @@ class CompletionAPI(BaseAPI):
                 elif char == "}":
                     brace_count -= 1
                     if brace_count == 0:
-                        try:
-                            yield json.loads(buffer[start_position:])
-                        except json.JSONDecodeError:
-                            yield ast.literal_eval(buffer[start_position:])
+                        # try:
+                        yield json.loads(buffer[start_position:])
+                        # except json.JSONDecodeError:
+                        #     yield ast.literal_eval(buffer[start_position:])
 
                         start_position = -1
                         buffer = buffer[len(buffer) :]  # Keep the buffer clean

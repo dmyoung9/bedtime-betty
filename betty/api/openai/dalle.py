@@ -9,7 +9,7 @@ class ImageAPI(BaseAPI):
     def __init__(self, api_key: str):
         openai.api_key = api_key
 
-    @guard_errors
+    # @guard_errors
     async def _get_images(
         self, prompt: str, size: int = 1024, response_format="url", num=1
     ) -> list[str]:

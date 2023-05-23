@@ -26,14 +26,28 @@ class StoryGenerator(BaseGenerator[Item]):
 
     def _build_info(
         self,
+        *args,
         **kwargs,
     ):
         obj = kwargs.pop("obj", Item)
+        num = kwargs.get("num", DEFAULT_NUM)
+
+        if examples := kwargs.pop("examples", []):
+            write_or_continue = "continue this"  # "write an" if kwargs.get(examples) else 
+            placeholder_or_previous = f"Previous {obj.prompt_type()}"
+            examples = [e if isinstance(e, dict) else asdict(e) for e in examples]
+        else:
+            write_or_continue = "write an"
+            placeholder_or_previous = "Example with placeholders"
+            examples = obj.examples(num)        
+
         info = {
-            "num": (num := kwargs.get("num", DEFAULT_NUM)),
+            "num": num,
             "age": kwargs.get("age", DEFAULT_AGE),
-            "examples": json.dumps(kwargs.get("examples", obj.examples(num))),
+            "examples": json.dumps(examples),
             "plural": plural(num),
+            "write_or_continue": write_or_continue,
+            "placeholder_or_previous": placeholder_or_previous
         }
 
         for k, v in kwargs.items():

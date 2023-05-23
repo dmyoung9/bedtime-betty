@@ -10,4 +10,4 @@ Example{plural}:
 {examples}
 ```
 
-Please only respond with an unformatted JSON array of {num} description{plural}, as in the example{plural}. `content` should be a single string, containing a comma-separated list of terms.
+Please only respond with an unformatted JSON array of {num} description object{plural}, as in the example{plural}. Use double quotes for keys and values. `content` should be a single string, containing a comma-separated list of terms.

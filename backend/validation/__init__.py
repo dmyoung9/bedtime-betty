@@ -56,7 +56,7 @@ class TitleRequest(ItemRequest):
 
 class PageRequest(ItemRequest):
     obj: Type[Item] = Page
-    examples: Optional[list[Item]] = Page.examples(DEFAULT_NUM)
+    examples: list[Page] = Page.examples(DEFAULT_NUM)
     story_idea: Idea
     story_lesson: Lesson
     story_author: Author
@@ -65,6 +65,7 @@ class PageRequest(ItemRequest):
 
 class ImageRequest(ItemRequest):
     obj: Type[Item] = Image
+    size: Optional[int] = 1024
     examples: Optional[list[Item]] = Image.examples(DEFAULT_NUM)
     story_artist: Artist
     story_description: Description
@@ -75,3 +76,20 @@ class DescriptionRequest(ItemRequest):
     examples: Optional[list[Item]] = Description.examples(DEFAULT_NUM)
     story_page: Page
     story_artist: Artist
+
+
+class StoryCreateRequest(BaseModel):
+    age: int
+    story_idea: Idea
+    story_lesson: Lesson
+    story_author: Author
+    story_artist: Artist
+    story_title: Title
+    story_pages: list[Page] = []
+
+    class Config:
+        extra = "forbid"
+
+
+class ItemIdRequest(BaseModel):
+    id: int
