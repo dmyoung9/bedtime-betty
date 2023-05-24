@@ -37,7 +37,7 @@ class StoryGenerator(BaseGenerator[Item]):
             write_or_continue = (
                 "continue this"  # "write an" if kwargs.get(examples) else
             )
-            placeholder_or_previous = f"Previous {obj.prompt_type()}"
+            placeholder_or_previous = "Previous items"
             if obj == Page:
                 examples = [
                     e if isinstance(e, dict) else asdict(e) for e in examples["pages"]

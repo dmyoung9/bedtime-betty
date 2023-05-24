@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from abc import ABCMeta
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import asdict, dataclass, field
+import json
+from typing import Optional, Union
 
 import emoji as em
 
@@ -12,16 +13,31 @@ class Item(metaclass=ABCMeta):
     def __str__(self):
         return str(self.__dict__)
 
-    @classmethod
-    def prompt_type(cls):
-        return f"{cls.__name__.lower()}s"
+    def __dict__(self):
+        return asdict(self)
+
+    def as_json(self):
+        return json.dumps(self.__dict__)
 
     @classmethod
-    def _base_examples(cls, num):
-        return [
-            {key: f"{{{key}}}" for key in cls.__dataclass_fields__.keys()}
-            for _ in range(num)
-        ]
+    def _base_examples(
+        cls, num, previous: Optional[list[Item]] = None
+    ) -> dict[str, Union[int, list[Item]]]:
+        data = previous or []
+
+        data.extend(
+            [
+                cls(
+                    **{
+                        key: f"{{{key}}} {num - idx}"
+                        for key in cls.__dataclass_fields__.keys()
+                    }
+                )
+                for idx in range(num - len(data), 0, -1)
+            ]
+        )
+
+        return {"total": num, "data": data}
 
     @classmethod
     def examples(cls, num):
@@ -33,27 +49,11 @@ class Artist(Item):
     artist_name: str
     artist_style: str
 
-    @classmethod
-    def examples(cls, num):
-        examples = cls._base_examples(num)
-        for example in examples:
-            example["artist_style"] = ", ".join("{artist_style}" for _ in range(3))
-
-        return examples
-
 
 @dataclass
 class Author(Item):
     author_name: str
     author_style: str
-
-    @classmethod
-    def examples(cls, num):
-        examples = cls._base_examples(num)
-        for example in examples:
-            example["author_style"] = ", ".join("{author_style}" for _ in range(3))
-
-        return examples
 
 
 @dataclass
@@ -83,16 +83,6 @@ class Idea(Item):
             else (idea, emoji)
         )
 
-    @classmethod
-    def examples(cls, num):
-        examples = cls._base_examples(num)
-
-        # give "concrete" emoji example
-        for example in examples:
-            example["emoji"] = "1️⃣2️⃣3️⃣4️⃣5️⃣"
-
-        return examples
-
 
 @dataclass
 class Image(Item):
@@ -106,20 +96,8 @@ class Lesson(Item):
 
 @dataclass
 class Page(Item):
-    number: int
     content: str
     image: Optional[Image] = None
-
-    @classmethod
-    def examples(cls, num):
-        examples = cls._base_examples(num)
-
-        # remove image from response, will be filled later
-        for idx, example in enumerate(examples):
-            example["number"] = idx + 1
-            del example["image"]
-
-        return {"total": num, "pages": examples}
 
 
 @dataclass
