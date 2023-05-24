@@ -6,7 +6,7 @@ from typing import AsyncGenerator, Type, Union
 from betty.api.openai.dalle import ImageAPI
 from betty.api.openai.gpt import CompletionAPI
 from . import BaseGenerator
-from ..types import Image, Item
+from ..types.items import Image, Item, Page
 from ..prompt import Prompt
 
 SYSTEM_PROMPT = "bedtime_betty"
@@ -29,17 +29,26 @@ class StoryGenerator(BaseGenerator[Item]):
         *args,
         **kwargs,
     ):
+        print(kwargs)
         obj = kwargs.pop("obj", Item)
         num = kwargs.get("num", DEFAULT_NUM)
 
         if examples := kwargs.pop("examples", []):
-            write_or_continue = "continue this"  # "write an" if kwargs.get(examples) else 
+            write_or_continue = (
+                "continue this"  # "write an" if kwargs.get(examples) else
+            )
             placeholder_or_previous = f"Previous {obj.prompt_type()}"
-            examples = [e if isinstance(e, dict) else asdict(e) for e in examples]
+            if obj == Page:
+                examples = [
+                    e if isinstance(e, dict) else asdict(e) for e in examples["pages"]
+                ]
+                print(examples)
+            else:
+                examples = [e if isinstance(e, dict) else asdict(e) for e in examples]
         else:
             write_or_continue = "write an"
             placeholder_or_previous = "Example with placeholders"
-            examples = obj.examples(num)        
+            examples = obj.examples(num)
 
         info = {
             "num": num,
@@ -47,7 +56,7 @@ class StoryGenerator(BaseGenerator[Item]):
             "examples": json.dumps(examples),
             "plural": plural(num),
             "write_or_continue": write_or_continue,
-            "placeholder_or_previous": placeholder_or_previous
+            "placeholder_or_previous": placeholder_or_previous,
         }
 
         for k, v in kwargs.items():

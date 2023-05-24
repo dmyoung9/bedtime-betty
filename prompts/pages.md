@@ -1,6 +1,6 @@
-Please {write_or_continue} engaging, original, and age-appropriate (for {age} year-olds) story in the style of {author_name} ({author_style}), about '{idea}', that will capture their imagination and help develop their cognitive abilities. The story should subtly teach the lesson '{lesson}'. The story's title is '{title}'. The story should be {num} page{plural} long, with the page(s) being of appropriate length for the content and target age.
+Please write an engaging, original, and age-appropriate (for {age} year-olds) story in the style of {author_name} ({author_style}), about '{idea}', that will capture their imagination and help develop their cognitive abilities. The story should subtly teach the lesson '{lesson}'. The story's title is '{title}'. The story should be {num} page{plural} long, with the page(s) being of appropriate length for the content and target age.
 
-{placeholder_or_previous}:
+Example:
 
 ```json
 {examples}

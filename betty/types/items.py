@@ -1,12 +1,10 @@
 from __future__ import annotations
-from abc import ABCMeta
 
-from dataclasses import dataclass
+from abc import ABCMeta
+from dataclasses import dataclass, field
 from typing import Optional
 
 import emoji as em
-
-DEFAULT_NUM = 3
 
 
 @dataclass
@@ -19,14 +17,14 @@ class Item(metaclass=ABCMeta):
         return f"{cls.__name__.lower()}s"
 
     @classmethod
-    def _base_examples(cls, num: int = DEFAULT_NUM):
+    def _base_examples(cls, num):
         return [
             {key: f"{{{key}}}" for key in cls.__dataclass_fields__.keys()}
-            for _ in range(int((num / 2) + 1))
+            for _ in range(num)
         ]
 
     @classmethod
-    def examples(cls, num: int = DEFAULT_NUM):
+    def examples(cls, num):
         return cls._base_examples(num)
 
 
@@ -36,10 +34,10 @@ class Artist(Item):
     artist_style: str
 
     @classmethod
-    def examples(cls, num: int = DEFAULT_NUM):
+    def examples(cls, num):
         examples = cls._base_examples(num)
         for example in examples:
-            example["artist_style"] = ", ".join("{{artist_style}}" for _ in range(3))
+            example["artist_style"] = ", ".join("{artist_style}" for _ in range(3))
 
         return examples
 
@@ -50,12 +48,17 @@ class Author(Item):
     author_style: str
 
     @classmethod
-    def examples(cls, num: int = DEFAULT_NUM):
+    def examples(cls, num):
         examples = cls._base_examples(num)
         for example in examples:
-            example["author_style"] = ", ".join("{{author_style}}" for _ in range(3))
+            example["author_style"] = ", ".join("{author_style}" for _ in range(3))
 
         return examples
+
+
+@dataclass
+class Description(Item):
+    description: str
 
 
 @dataclass
@@ -63,63 +66,32 @@ class Idea(Item):
     idea: str
     emoji: str
 
-    def __init__(self, idea: str, emoji: str = "", emojis: str = ""):
-        self.idea = idea
-        self.emoji = emoji or emojis
+    def __init__(self, *args, **kwargs):
+        self.idea, self.emoji = Idea.parse_emoji(*args, **kwargs)
 
-        if emoji_list := em.emoji_list(idea):
-            self.idea, self.emoji = (
-                self.idea[: emoji_list[0]["match_start"]],
-                self.idea[emoji_list[0]["match_start"] :],
+    @staticmethod
+    def parse_emoji(*args, **kwargs):
+        idea = kwargs["idea"]
+        emoji = kwargs.get("emoji", kwargs.get("emojis"))
+
+        return (
+            (
+                idea[: emoji_list[0]["match_start"]],
+                idea[emoji_list[0]["match_start"] :],
             )
+            if (emoji_list := em.emoji_list(idea))
+            else (idea, emoji)
+        )
 
     @classmethod
-    def examples(cls, num: int = DEFAULT_NUM):
+    def examples(cls, num):
         examples = cls._base_examples(num)
+
+        # give "concrete" emoji example
         for example in examples:
-            example["idea"] = "{{idea}}"
             example["emoji"] = "1️⃣2️⃣3️⃣4️⃣5️⃣"
 
         return examples
-
-
-@dataclass
-class Lesson(Item):
-    lesson: str
-
-
-@dataclass
-class Title(Item):
-    title: str
-
-
-@dataclass
-class Page(Item):
-    number: int
-    total: int
-    content: str
-    image: Optional[str] = None
-
-    @classmethod
-    def examples(cls, num: int = DEFAULT_NUM):
-        examples = cls._base_examples(num)
-        for idx, example in enumerate(examples):
-            example["number"] = idx + 1
-            example["total"] = num
-            del example["image"]
-
-        return examples
-
-
-@dataclass
-class Story:
-    age: int
-    story_idea: Idea
-    story_lesson: Lesson
-    story_author: Author
-    story_artist: Artist
-    story_title: Title
-    pages: Optional[list[Page]] = None
 
 
 @dataclass
@@ -128,5 +100,39 @@ class Image(Item):
 
 
 @dataclass
-class Description(Item):
+class Lesson(Item):
+    lesson: str
+
+
+@dataclass
+class Page(Item):
+    number: int
     content: str
+    image: Optional[Image] = None
+
+    @classmethod
+    def examples(cls, num):
+        examples = cls._base_examples(num)
+
+        # remove image from response, will be filled later
+        for idx, example in enumerate(examples):
+            example["number"] = idx + 1
+            del example["image"]
+
+        return {"total": num, "pages": examples}
+
+
+@dataclass
+class Story:
+    age: int
+    idea: Idea
+    lesson: Lesson
+    author: Author
+    artist: Artist
+    title: Title
+    pages: list[Page] = field(default_factory=list)
+
+
+@dataclass
+class Title(Item):
+    title: str

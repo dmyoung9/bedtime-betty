@@ -1,26 +1,29 @@
 import asyncio
 from dataclasses import asdict
 import json
-from pydantic import ValidationError
+
+# from pydantic import ValidationError
 from quart import request, websocket
 
 from betty.generator.story import StoryGenerator
 from betty.generator.test import TestGenerator
 
-DEBUG = False
+DEBUG = True
 
 
 async def emit_items_to_websocket(story_generator, **kwargs):
-    start = {"type": "start"}
+    start = {"type": "start", "requested": kwargs.get("num", -1)}
     await websocket.send(json.dumps(start))
     print(json.dumps(start))
+    emitted = 0
 
     async for item in story_generator.stream_story_items(**kwargs):
         response = {"type": "item", "data": asdict(item)}
         await websocket.send(json.dumps(response))
+        emitted += 1
         print(json.dumps(response))
 
-    end = {"type": "end"}
+    end = {"type": "end", "total": emitted}
     await websocket.send(json.dumps(end))
     print(json.dumps(end))
 
@@ -35,10 +38,13 @@ async def handle_generate_request(request_type):
     data = await request.get_json()
     # try:
     item_request = request_type.parse_obj(data)
+    print(item_request)
     # except ValidationError as ve:
     #     return {"error": str(ve)}, 400
 
-    return await story_generator.generate_story_items(**item_request.dict())
+    items = await story_generator.generate_story_items(**item_request.dict())
+
+    return {"total": len(items), "data": items}
 
 
 async def handle_stream_request(request_type):

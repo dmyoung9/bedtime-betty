@@ -1,4 +1,4 @@
-import ast
+# import ast
 import json
 import re
 from typing import AsyncGenerator, Iterable, Literal, Optional, TypedDict
@@ -8,7 +8,8 @@ import tiktoken
 
 
 from .. import BaseAPI
-from . import guard_errors
+
+# from . import guard_errors
 from betty.prompt import Prompt
 
 MODEL = "gpt-3.5-turbo-0301"
@@ -97,7 +98,7 @@ class CompletionAPI(BaseAPI):
         messages: Iterable[Message],
         model: str = MODEL,
         temperature: float = 1,
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[dict[str, str], None]:
         """Streams the generated text in chunks based on the given messages."""
 
         response = await openai.ChatCompletion.acreate(
@@ -124,7 +125,9 @@ class CompletionAPI(BaseAPI):
             temperature=temperature,
         )
 
-        if json_match := re.findall(r"(?:```)(?:[a-z]*\n)?(.*?)(?:```)", response, re.DOTALL):
+        if json_match := re.findall(
+            r"(?:```)(?:[a-z]*\n)?(.*?)(?:```)", response, re.DOTALL
+        ):
             response = json_match[0]
 
         # try:
