@@ -4,13 +4,13 @@ from typing import Generic, Optional, Type
 
 from pydantic import validator
 
+from betty.types import Item
 from betty.types.items import (
     Artist,
     Author,
     Description,
     Idea,
     Image,
-    Item,
     Lesson,
     Page,
     Title,
