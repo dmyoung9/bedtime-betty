@@ -78,7 +78,7 @@ class StoryGenerator(BaseGenerator[Item]):
         messages = self.completion_api.build_messages(
             filename, system_prompt_filename, **kwargs
         )
-        return await self.completion_api.get_json(messages)
+        return await self.completion_api.get_json(messages).get("data", [])
 
     async def _stream(self, obj, filename, system_prompt_filename, **kwargs):
         messages = self.completion_api.build_messages(
