@@ -1,67 +1,27 @@
 from __future__ import annotations
 
-from abc import ABCMeta
-from dataclasses import asdict, dataclass, field
-import json
-from typing import Optional, Union
+from dataclasses import field
+from typing import Optional
 
 import emoji as em
 
-
-@dataclass
-class Item(metaclass=ABCMeta):
-    def __str__(self):
-        return str(self.__dict__)
-
-    def __dict__(self):
-        return asdict(self)
-
-    def as_json(self):
-        return json.dumps(self.__dict__)
-
-    @classmethod
-    def _base_examples(
-        cls, num, previous: Optional[list[Item]] = None
-    ) -> dict[str, Union[int, list[Item]]]:
-        data = previous or []
-
-        data.extend(
-            [
-                cls(
-                    **{
-                        key: f"{{{key}}} {num - idx}"
-                        for key in cls.__dataclass_fields__.keys()
-                    }
-                )
-                for idx in range(num - len(data), 0, -1)
-            ]
-        )
-
-        return {"total": num, "data": data}
-
-    @classmethod
-    def examples(cls, num):
-        return cls._base_examples(num)
+from . import Item
 
 
-@dataclass
 class Artist(Item):
     artist_name: str
     artist_style: str
 
 
-@dataclass
 class Author(Item):
     author_name: str
     author_style: str
 
 
-@dataclass
 class Description(Item):
     description: str
 
 
-@dataclass
 class Idea(Item):
     idea: str
     emoji: str
@@ -84,23 +44,19 @@ class Idea(Item):
         )
 
 
-@dataclass
 class Image(Item):
     url: str
 
 
-@dataclass
 class Lesson(Item):
     lesson: str
 
 
-@dataclass
 class Page(Item):
     content: str
     image: Optional[Image] = None
 
 
-@dataclass
 class Story:
     age: int
     idea: Idea
@@ -111,6 +67,5 @@ class Story:
     pages: list[Page] = field(default_factory=list)
 
 
-@dataclass
 class Title(Item):
     title: str

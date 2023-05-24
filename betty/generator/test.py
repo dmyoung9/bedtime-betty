@@ -1,7 +1,8 @@
 import random
 from typing import AsyncGenerator, Type, Union
 from . import BaseGenerator
-from ..types.items import Image, Item, Page
+from ..types import Item
+from ..types.items import Image, Page
 
 codes = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
 

@@ -6,7 +6,8 @@ from typing import AsyncGenerator, Type, Union
 from betty.api.openai.dalle import ImageAPI
 from betty.api.openai.gpt import CompletionAPI
 from . import BaseGenerator
-from ..types.items import Image, Item, Page
+from ..types import Item
+from ..types.items import Image, Page
 from ..prompt import Prompt
 
 SYSTEM_PROMPT = "bedtime_betty"
