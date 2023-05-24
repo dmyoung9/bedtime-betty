@@ -1,6 +1,6 @@
 import openai
 
-from betty.api.openai import guard_errors
+# from betty.api.third_party.openai import guard_errors
 
 from .. import BaseAPI
 
