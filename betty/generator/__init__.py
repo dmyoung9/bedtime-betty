@@ -43,10 +43,7 @@ class BaseGenerator(Generic[T], metaclass=ABCMeta):
 
         print(f"Generating {filename.split('.')[0]} for {info}...")
 
-        items = await self._generate(obj, filename, system_prompt_filename, **info)
-        print(items)
-
-        return [obj(**item) for item in items]
+        return await self._generate(obj, filename, system_prompt_filename, **info)
 
     async def stream_items(
         self,
