@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABCMeta
 from dataclasses import asdict, dataclass
 import json
-from typing import Optional, Union
+from typing import Optional
 
 
 @dataclass
@@ -18,11 +18,8 @@ class Item(metaclass=ABCMeta):
         return json.dumps(self.__dict__)
 
     @classmethod
-    def _base_examples(
-        cls, num, previous: Optional[list[Item]] = None
-    ) -> dict[str, Union[int, list[Item]]]:
+    def _base_examples(cls, num, previous: Optional[list[Item]] = None) -> list[Item]:
         data = previous or []
-
         data.extend(
             [
                 cls(
@@ -35,7 +32,7 @@ class Item(metaclass=ABCMeta):
             ]
         )
 
-        return {"total": num, "data": data}
+        return data
 
     @classmethod
     def examples(cls, num):

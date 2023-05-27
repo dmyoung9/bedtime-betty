@@ -2,7 +2,7 @@ from quart import Blueprint
 
 from app.views.views import GenerateItemsView, StreamItemsView
 
-from ..models.validation import IdeaRequestModel
+from ..models.validation.requests import IdeaRequestModel
 
 ideas_blueprint = Blueprint("ideas", __name__)
 
