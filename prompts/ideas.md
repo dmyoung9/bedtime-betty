@@ -1,11 +1,14 @@
-Please suggest {num} original, captivating, and age-appropriate story idea{plural} (7-12 words) for {age} year-olds that will challenge their imagination and cognitive abilities.
+Tasks:
+* Generate {num} original, captivating, and age-appropriate story idea{plural} (7-12 words) for {age} year-olds.
+* Generate 5 related emoji that convey each idea.
 
-In addition, please suggest exactly 5 related emoji that convey the idea{plural}.
+Requirements:
+* Output must be JSON text with no whitespace on a single line.
+* Each idea must be structured like: `{{"idea":"...","emoji":"1️⃣2️⃣3️⃣4️⃣5️⃣"}}`
+* `idea` must contain only the idea, with no emoji.
+* `emoji` must only contain emoji.
 
-Example{plural}:
-
-```json
+Example:
 {examples}
-```
 
-Please only respond with an unformatted JSON array of {num} idea object{plural}, as in the example{plural}. Use double quotes for keys and values. `idea` should be a single string, containing only the story idea. `emoji` should be a single string, containing exactly 5 emoji. **Do not** repeat the emoji in the idea{plural}.
+Output:
