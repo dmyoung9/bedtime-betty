@@ -1,12 +1,11 @@
 from dataclasses import asdict
 
-import json
 from typing import AsyncGenerator, Type, Union
 
 from betty.api.openai.dalle import ImageAPI
 from betty.api.openai.gpt import CompletionAPI
 from . import BaseGenerator
-from ..types import Item
+from ..types import Item, serialize_to_json
 from ..types.items import Image, Page
 from ..prompt import Prompt
 
@@ -51,10 +50,12 @@ class StoryGenerator(BaseGenerator[Item]):
             placeholder_or_previous = "Example with placeholders"
             examples = obj.examples(num)
 
+        examples = {"total": num, "data": examples}
+
         info = {
             "num": num,
             "age": kwargs.get("age", DEFAULT_AGE),
-            "examples": json.dumps(examples),
+            "examples": serialize_to_json(examples),
             "plural": plural(num),
             "write_or_continue": write_or_continue,
             "placeholder_or_previous": placeholder_or_previous,
@@ -79,7 +80,7 @@ class StoryGenerator(BaseGenerator[Item]):
         messages = self.completion_api.build_messages(
             filename, system_prompt_filename, **kwargs
         )
-        return await self.completion_api.get_json(messages).get("data", [])
+        return (await self.completion_api.get_json(messages)).get("data", [])
 
     async def _stream(self, obj, filename, system_prompt_filename, **kwargs):
         messages = self.completion_api.build_messages(

@@ -3,7 +3,21 @@ from __future__ import annotations
 from abc import ABCMeta
 from dataclasses import asdict, dataclass
 import json
-from typing import Optional
+from typing import Any, Optional
+
+
+def serialize_to_json(obj: Any) -> str:
+    def _serialize(obj):
+        if isinstance(obj, Item):
+            return {k: _serialize(v) for k, v in asdict(obj).items()}
+        elif isinstance(obj, list):
+            return [_serialize(x) for x in obj]
+        elif isinstance(obj, dict):
+            return {k: _serialize(v) for k, v in obj.items()}
+        else:
+            return obj
+
+    return json.dumps(_serialize(obj))
 
 
 @dataclass
@@ -13,9 +27,6 @@ class Item(metaclass=ABCMeta):
 
     def __dict__(self):
         return asdict(self)
-
-    def as_json(self):
-        return json.dumps(self.__dict__)
 
     @classmethod
     def _base_examples(cls, num, previous: Optional[list[Item]] = None) -> list[Item]:
