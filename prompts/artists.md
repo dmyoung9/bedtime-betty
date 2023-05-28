@@ -1,11 +1,12 @@
-Please list {num} illustrator{plural}, animator{plural} or artist{plural} whose target audience is primarily {age} year-olds. 
+Tasks:
+* List {num} illustrator{plural} whose target audience is primarily {age} year-olds.
+* List 3-5 styles that are associated with their illustrations.
 
-In addition, please list 3-5 visual (not literary) styles or themes that are associated with their works.
+Requirements:
+* Output must be JSON text with no whitespace on a single line.
+* Output must be a JSON array of {num} illustrator object{plural}.
+* Each illustrator object must be structured like: `{{"artist_name":"...","artist_style":"..., ..., ..."}}`
+* **Do not** give any explanation.
+* **Do not** use a code block.
 
-Example{plural}:
-
-```json
-{examples}
-```
-
-Please only respond with an unformatted JSON array of {num} artist object{plural}, as in the example{plural}. Use double quotes for keys and values. `artist_style` should be a single string, containing a comma-separated list of styles.
+Output:
