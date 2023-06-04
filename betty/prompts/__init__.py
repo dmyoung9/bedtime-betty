@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Type, Union
 
 from langchain.prompts import SystemMessagePromptTemplate, ChatMessagePromptTemplate
 
@@ -17,7 +17,7 @@ def load_prompt(filename: Union[str, Path]) -> str:
 
 
 def get_prompts_for_item(
-    obj: Optional[Item] = None,
+    obj: Optional[Type[Item]] = None,
 ) -> list[list[ChatMessagePromptTemplate]]:
     prompts = []
     if obj is None:

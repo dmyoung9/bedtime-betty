@@ -17,13 +17,13 @@ class Item(metaclass=ABCMeta):
     def plural(cls) -> str:
         return f"{cls.key()}s"
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def response_model(cls) -> Type[ItemModel]:
         ...
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def model(cls) -> Type[ItemModel]:
         ...
 
