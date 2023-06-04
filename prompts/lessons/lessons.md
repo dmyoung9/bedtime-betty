@@ -1,0 +1,1 @@
+Generate {num} age-appropriate "moral of the story"-style lesson{plural} (7-12 words) for {age} year-olds, that could be subtly woven into a new story.

@@ -1,0 +1,1 @@
+List 3-5 visual (not literary) styles that are associated with their illustrations.

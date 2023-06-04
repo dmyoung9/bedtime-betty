@@ -1,0 +1,31 @@
+{
+    "steps": [
+        {
+            "prompts": [
+                {
+                    "filename": "authors_and_artists.md",
+                    "input_variables": [
+                        "age",
+                        "num",
+                        "plural"
+                    ],
+                    "role": "Parent"
+                }
+            ]
+        },
+        {
+            "prompts": [
+                {
+                    "filename": "ideas.md",
+                    "input_variables": [
+                        "age",
+                        "num",
+                        "plural",
+                        "obj_key"
+                    ],
+                    "role": "Parent"
+                }
+            ]
+        }
+    ]
+}

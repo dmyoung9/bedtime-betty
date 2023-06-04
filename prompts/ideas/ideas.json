@@ -1,0 +1,50 @@
+{
+    "steps": [
+        {
+            "prompts": [
+                {
+                    "filename": "keywords.md",
+                    "input_variables": [
+                        "age",
+                        "num",
+                        "obj_plural"
+                    ],
+                    "role": "Parent"
+                }
+            ]
+        },
+        {
+            "prompts": [
+                {
+                    "filename": "idea.md",
+                    "input_variables": [
+                        "num",
+                        "plural",
+                        "obj_plural"
+                    ],
+                    "role": "Parent"
+                }
+            ]
+        },
+        {
+            "prompts": [
+                {
+                    "filename": "emoji.md",
+                    "input_variables": [
+                        "obj_key"
+                    ],
+                    "role": "Parent"
+                },
+                {
+                    "filename": "requirements.md",
+                    "input_variables": [
+                        "num",
+                        "plural",
+                        "obj_key"
+                    ],
+                    "role": "Parent"
+                }
+            ]
+        }
+    ]
+}

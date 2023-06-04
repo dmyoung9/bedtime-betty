@@ -1,0 +1,15 @@
+{
+    "steps": [
+        {
+            "prompts": [
+                {
+                    "filename": "bedtime_betty.md",
+                    "input_variables": [
+                        "history",
+                        "input"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,1 @@
+Generate 5 related emoji that convey each {obj_key}.

@@ -1,0 +1,1 @@
+Use the previously generated keywords as "jumping off points", combining concepts and themes in unique, interesting, and unexpected ways, to come up with {num} engaging, captivating, and original {obj_plural}, expressed as a short summary (7-12 words) of the idea in sentence format. **Do not** generate any title{plural} for the {obj_plural}.

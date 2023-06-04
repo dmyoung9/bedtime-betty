@@ -1,0 +1,25 @@
+{
+    "steps": [
+        {
+            "prompts": [
+                {
+                    "filename": "lessons.md",
+                    "role": "Parent",
+                    "input_variables": [
+                        "num",
+                        "age",
+                        "plural"
+                    ]
+                },
+                {
+                    "filename": "requirements.md",
+                    "role": "Parent",
+                    "input_variables": [
+                        "num",
+                        "plural"
+                    ]
+                }
+            ]
+        }
+    ]
+}
