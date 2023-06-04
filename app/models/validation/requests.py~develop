@@ -11,16 +11,12 @@ from app.models.validation.items import (
     TitleModel,
 )
 
-from betty.types import Item
-from betty.types.items import (
+from betty.types.items import Item, Description, Image, Page, Title
+from betty.types.data import (
     Artist,
     Author,
-    Description,
     Idea,
-    Image,
     Lesson,
-    Page,
-    Title,
 )
 from . import DEFAULT_NUM, RequestModel, T
 

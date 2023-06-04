@@ -1,15 +1,7 @@
 from typing import Optional, Type
 
-from betty.types.items import (
-    Artist,
-    Author,
-    Description,
-    Idea,
-    Image,
-    Lesson,
-    Page,
-    Title,
-)
+from betty.types.data import Artist, Author, Idea, Lesson
+from betty.types.items import Image, Description, Page, Title
 
 from . import ItemModel
 

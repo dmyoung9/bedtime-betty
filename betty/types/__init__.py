@@ -1,50 +1,36 @@
 from __future__ import annotations
 
-from abc import ABCMeta
-from dataclasses import asdict, dataclass
-import json
-from typing import Any, Optional
+from abc import ABCMeta, abstractmethod
+from dataclasses import dataclass
+from typing import Type
 
-
-def serialize_to_json(obj: Any) -> str:
-    def _serialize(obj):
-        if isinstance(obj, Item):
-            return {k: _serialize(v) for k, v in asdict(obj).items()}
-        elif isinstance(obj, list):
-            return [_serialize(x) for x in obj]
-        elif isinstance(obj, dict):
-            return {k: _serialize(v) for k, v in obj.items()}
-        else:
-            return obj
-
-    return json.dumps(_serialize(obj))
+from pydantic import BaseModel
 
 
 @dataclass
 class Item(metaclass=ABCMeta):
-    def __str__(self):
-        return str(self.__dict__)
-
-    def __dict__(self):
-        return asdict(self)
+    @classmethod
+    def key(cls) -> str:
+        return cls.__name__.lower()
 
     @classmethod
-    def _base_examples(cls, num, previous: Optional[list[Item]] = None) -> list[Item]:
-        data = previous or []
-        data.extend(
-            [
-                cls(
-                    **{
-                        key: f"{{{key}}} {num - idx + 1}"
-                        for key in cls.__dataclass_fields__.keys()
-                    }
-                )
-                for idx in range(num - len(data), 0, -1)
-            ]
-        )
+    def plural(cls) -> str:
+        return f"{cls.key()}s"
 
-        return data
-
+    @abstractmethod
     @classmethod
-    def examples(cls, num):
-        return cls._base_examples(num)
+    def response_model(cls) -> Type[ItemModel]:
+        ...
+
+    @abstractmethod
+    @classmethod
+    def model(cls) -> Type[ItemModel]:
+        ...
+
+
+class ItemModel(BaseModel):
+    pass
+
+
+class ItemResponseModel(BaseModel):
+    data: list[ItemModel]
