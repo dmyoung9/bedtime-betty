@@ -1,4 +1,4 @@
-from typing import Any, Optional, Type
+from typing import Any, Callable, Optional, Type
 from uuid import UUID
 
 from langchain.callbacks.base import AsyncCallbackHandler
@@ -22,7 +22,9 @@ class RoleBasedConversationBufferMemory(ConversationBufferMemory):
 class JSONStreamingHandler(AsyncCallbackHandler):
     START_POSITION_DEFAULT: int = -1
 
-    def __init__(self, obj: Type[Item], callback_func, *args, **kwargs):
+    def __init__(
+        self, obj: Type[Item], callback_func: Callable[[Item], None], *args, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.data_obj = obj
         self.callback_func = callback_func
