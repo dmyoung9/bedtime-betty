@@ -1,4 +1,6 @@
-# import asyncio
+import ast
+import json
+
 from typing import Callable, Type
 
 from dotenv import load_dotenv
@@ -8,6 +10,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import ChatPromptTemplate
+from langchain.schema import OutputParserException
 
 from betty.chat import JSONStreamingHandler, RoleBasedConversationBufferMemory
 
@@ -28,7 +31,10 @@ class ChatAPI:
 
     def _parse_response(self, output: str, obj: Type[Item]) -> list[Item]:
         parser = PydanticOutputParser(pydantic_object=obj.response_model())
-        return parser.parse(output).dict()["data"]
+        try:
+            return parser.parse(output).dict()["data"]
+        except OutputParserException:
+            return self._parse_response(json.dumps(ast.literal_eval(output)), obj)
 
     async def _run_chain(
         self,
