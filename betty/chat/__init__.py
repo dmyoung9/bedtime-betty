@@ -22,9 +22,10 @@ class RoleBasedConversationBufferMemory(ConversationBufferMemory):
 class JSONStreamingHandler(AsyncCallbackHandler):
     START_POSITION_DEFAULT: int = -1
 
-    def __init__(self, obj: Type[Item], *args, **kwargs):
+    def __init__(self, obj: Type[Item], callback_func, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.data_obj = obj
+        self.callback_func = callback_func
         self.buffer: list[str] = []
         self.start_position = self.START_POSITION_DEFAULT
         self.brace_count = 0
@@ -80,7 +81,7 @@ class JSONStreamingHandler(AsyncCallbackHandler):
         **kwargs: Any,
     ) -> None:
         if obj := self._check_token(token):
-            print(obj)
+            self.callback_func(obj)
 
         return await super().on_llm_new_token(
             token, run_id=run_id, parent_run_id=parent_run_id, **kwargs

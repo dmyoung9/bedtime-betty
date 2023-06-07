@@ -63,7 +63,8 @@ class ChatAPI:
         for step in prompts:
             chat_prompt = ChatPromptTemplate.from_messages(step).format(**info)
             output = await chain.arun(
-                input=chat_prompt, callbacks=[JSONStreamingHandler(obj)]
+                input=chat_prompt,
+                callbacks=[JSONStreamingHandler(obj, lambda x: print(x))],
             )
             print()
 

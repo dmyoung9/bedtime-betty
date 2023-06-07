@@ -1,4 +1,4 @@
-Create {num} unique and interesting pairings between these authors and artists, if they were to collaborate on a bedtime story for {age} year-olds.
+Create some more unique and interesting pairings between these authors and artists, if they were to collaborate on a bedtime story for {age} year-olds.
 
 Requirements:
 * Output must be a comma-separated list of pairs.
