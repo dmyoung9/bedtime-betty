@@ -1,0 +1,26 @@
+Brainstorm a rough bulleted outline of the potential plot and tone indicated by the following bedtime story idea for {age} year-olds, including key details like specific locations and characters involved. The plot outline should be detailed enough to constitute a classic story structure (exposition, rising action, climax, resolution, denouement).
+
+{story}
+
+Requirements:
+* Output must be of the form:
+
+---
+Characters:
+- ...
+...
+
+Locations:
+- ...
+...
+
+Plot:
+- ...
+...
+
+Tone:
+- ...
+...
+---
+
+* **Do not** use a code block.

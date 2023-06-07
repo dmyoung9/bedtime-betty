@@ -1,0 +1,24 @@
+{
+    "steps": [
+        {
+            "prompts": [
+                {
+                    "filename": "brainstorm.md",
+                    "input_variables": [
+                        "age", "story"
+                    ],
+                    "role": "Parent"
+                }
+            ]
+        },
+        {
+            "prompts": [
+                {
+                    "filename": "story.md",
+                    "input_variables": ["age"],
+                    "role": "Parent"
+                }
+            ]
+        }
+    ]
+}

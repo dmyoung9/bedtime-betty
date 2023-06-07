@@ -1,6 +1,13 @@
 from . import ItemResponseModel
 
-from .validation import ArtistModel, AuthorModel, IdeaModel, LessonModel, StoryModel
+from .validation import (
+    ArtistModel,
+    AuthorModel,
+    IdeaModel,
+    LessonModel,
+    SectionModel,
+    StoryModel,
+)
 
 
 class ArtistResponseModel(ItemResponseModel):
@@ -17,6 +24,10 @@ class IdeaResponseModel(ItemResponseModel):
 
 class LessonResponseModel(ItemResponseModel):
     data: list[LessonModel]
+
+
+class SectionResponseModel(ItemResponseModel):
+    data: list[SectionModel]
 
 
 class StoryResponseModel(ItemResponseModel):

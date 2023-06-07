@@ -22,6 +22,10 @@ class LessonModel(ItemModel):
     lesson: str = Field(description="a lesson a story could teach")
 
 
+class SectionModel(ItemModel):
+    content: str = Field(description="the content of this section")
+
+
 class StoryModel(ItemModel):
     author: str = Field(description="author of the story")
     illustrator: str = Field(description="illustrator of the story")

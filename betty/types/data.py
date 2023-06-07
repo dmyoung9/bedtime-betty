@@ -7,9 +7,17 @@ from .response import (
     AuthorResponseModel,
     IdeaResponseModel,
     LessonResponseModel,
+    SectionResponseModel,
     StoryResponseModel,
 )
-from .validation import ArtistModel, AuthorModel, IdeaModel, LessonModel, StoryModel
+from .validation import (
+    ArtistModel,
+    AuthorModel,
+    IdeaModel,
+    LessonModel,
+    SectionModel,
+    StoryModel,
+)
 
 
 @dataclass
@@ -65,6 +73,19 @@ class Lesson(Item):
     @classmethod
     def model(cls) -> Type[LessonModel]:
         return LessonModel
+
+
+@dataclass
+class Section(Item):
+    content: str
+
+    @classmethod
+    def response_model(cls) -> Type[SectionResponseModel]:
+        return SectionResponseModel
+
+    @classmethod
+    def model(cls) -> Type[SectionModel]:
+        return SectionModel
 
 
 @dataclass
