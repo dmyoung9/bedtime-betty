@@ -2,6 +2,14 @@ from dataclasses import dataclass
 from typing import Type
 
 from . import Item
+from .request import (
+    ArtistRequestModel,
+    AuthorRequestModel,
+    IdeaRequestModel,
+    LessonRequestModel,
+    SectionRequestModel,
+    StoryRequestModel,
+)
 from .response import (
     ArtistResponseModel,
     AuthorResponseModel,
@@ -30,6 +38,10 @@ class Artist(Item):
         return ArtistModel
 
     @classmethod
+    def request_model(cls) -> Type[ArtistRequestModel]:
+        return ArtistRequestModel
+
+    @classmethod
     def response_model(cls) -> Type[ArtistResponseModel]:
         return ArtistResponseModel
 
@@ -40,12 +52,16 @@ class Author(Item):
     author_style: str
 
     @classmethod
-    def response_model(cls) -> Type[AuthorResponseModel]:
-        return AuthorResponseModel
-
-    @classmethod
     def model(cls) -> Type[AuthorModel]:
         return AuthorModel
+
+    @classmethod
+    def request_model(cls) -> Type[AuthorRequestModel]:
+        return AuthorRequestModel
+
+    @classmethod
+    def response_model(cls) -> Type[AuthorResponseModel]:
+        return AuthorResponseModel
 
 
 @dataclass
@@ -54,12 +70,16 @@ class Idea(Item):
     emoji: str
 
     @classmethod
-    def response_model(cls) -> Type[IdeaResponseModel]:
-        return IdeaResponseModel
-
-    @classmethod
     def model(cls) -> Type[IdeaModel]:
         return IdeaModel
+
+    @classmethod
+    def request_model(cls) -> Type[IdeaRequestModel]:
+        return IdeaRequestModel
+
+    @classmethod
+    def response_model(cls) -> Type[IdeaResponseModel]:
+        return IdeaResponseModel
 
 
 @dataclass
@@ -67,12 +87,16 @@ class Lesson(Item):
     lesson: str
 
     @classmethod
-    def response_model(cls) -> Type[LessonResponseModel]:
-        return LessonResponseModel
-
-    @classmethod
     def model(cls) -> Type[LessonModel]:
         return LessonModel
+
+    @classmethod
+    def request_model(cls) -> Type[LessonRequestModel]:
+        return LessonRequestModel
+
+    @classmethod
+    def response_model(cls) -> Type[LessonResponseModel]:
+        return LessonResponseModel
 
 
 @dataclass
@@ -80,12 +104,16 @@ class Section(Item):
     content: str
 
     @classmethod
-    def response_model(cls) -> Type[SectionResponseModel]:
-        return SectionResponseModel
-
-    @classmethod
     def model(cls) -> Type[SectionModel]:
         return SectionModel
+
+    @classmethod
+    def request_model(cls) -> Type[SectionRequestModel]:
+        return SectionRequestModel
+
+    @classmethod
+    def response_model(cls) -> Type[SectionResponseModel]:
+        return SectionResponseModel
 
 
 @dataclass
@@ -98,16 +126,20 @@ class Story(Item):
     lesson: str
 
     @classmethod
-    def plural(cls) -> str:
-        return "stories"
+    def model(cls) -> Type[StoryModel]:
+        return StoryModel
+
+    @classmethod
+    def request_model(cls) -> Type[StoryRequestModel]:
+        return StoryRequestModel
 
     @classmethod
     def response_model(cls) -> Type[StoryResponseModel]:
         return StoryResponseModel
 
     @classmethod
-    def model(cls) -> Type[StoryModel]:
-        return StoryModel
+    def plural(cls) -> str:
+        return "stories"
 
     def __str__(self) -> str:
         return (

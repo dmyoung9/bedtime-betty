@@ -1,13 +1,14 @@
 import asyncio
 
 from typing import Union
+
 from quart import Quart, render_template  # , send_from_directory
 
 # from quart_cors import cors
 
 from .views import api_blueprint
 
-from .models import db
+from .database import db
 from .config import Config
 
 import mimetypes
@@ -58,18 +59,6 @@ async def stories():
     )
 
 
-<<<<<<< develop:app/__init__.py
-# @quart_app.route("/settings", methods=["GET"])
-# async def settings():
-#     return await render_template("/settings.html")
-
-
 @quart_app.route("/settings", methods=["GET"])
 async def settings():
     return await render_template("/settings.html")
-
-
-# @quart_app.route("/static/<path:path>", methods=["GET"])
-# async def javascript_file(path):
-#     return await send_from_directory("backend/static", path,
-#         mimetype="application/javascript")

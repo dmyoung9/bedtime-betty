@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Mapped
 
-from . import db
+from .. import db
 
 
 class Items(db.Model):

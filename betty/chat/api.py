@@ -1,7 +1,7 @@
 import ast
 import json
 
-from typing import Callable, Type
+from typing import Any, Callable, Coroutine, Type
 
 from dotenv import load_dotenv
 
@@ -12,10 +12,9 @@ from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema import OutputParserException
 
-from betty.chat import JSONStreamingHandler, RoleBasedConversationBufferMemory
-
-from betty.types import Item
-from betty.prompts import get_prompts_for_item
+from ..chat import JSONStreamingHandler, RoleBasedConversationBufferMemory
+from ..types import Item
+from ..prompts import get_prompts_for_item
 
 load_dotenv()
 
@@ -66,7 +65,11 @@ class ChatAPI:
         return await self._run_chain(obj, chat, [], *args, **kwargs)
 
     async def stream(
-        self, obj: Type[Item], callback_func: Callable[[Item], None], *args, **kwargs
+        self,
+        obj: Type[Item],
+        callback_func: Callable[[Item], Coroutine[Any, Any, None]],
+        *args,
+        **kwargs
     ) -> None:
         chat = ChatOpenAI(streaming=True, **self.chat_kwargs)
         callbacks = [JSONStreamingHandler(obj, callback_func)]

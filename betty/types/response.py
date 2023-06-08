@@ -1,5 +1,4 @@
 from . import ItemResponseModel
-
 from .validation import (
     ArtistModel,
     AuthorModel,
@@ -10,25 +9,25 @@ from .validation import (
 )
 
 
-class ArtistResponseModel(ItemResponseModel):
-    data: list[ArtistModel]
+class ArtistResponseModel(ItemResponseModel[ArtistModel]):
+    pass
 
 
-class AuthorResponseModel(ItemResponseModel):
-    data: list[AuthorModel]
+class AuthorResponseModel(ItemResponseModel[AuthorModel]):
+    pass
 
 
-class IdeaResponseModel(ItemResponseModel):
-    data: list[IdeaModel]
+class IdeaResponseModel(ItemResponseModel[IdeaModel]):
+    pass
 
 
-class LessonResponseModel(ItemResponseModel):
-    data: list[LessonModel]
+class LessonResponseModel(ItemResponseModel[LessonModel]):
+    pass
 
 
-class SectionResponseModel(ItemResponseModel):
-    data: list[SectionModel]
+class SectionResponseModel(ItemResponseModel[SectionModel]):
+    pass
 
 
-class StoryResponseModel(ItemResponseModel):
-    data: list[StoryModel]
+class StoryResponseModel(ItemResponseModel[StoryModel]):
+    pass

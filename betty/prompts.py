@@ -5,7 +5,7 @@ from typing import Optional, Type, Union
 
 from langchain.prompts import SystemMessagePromptTemplate, ChatMessagePromptTemplate
 
-from ..types import Item
+from .types import Item
 
 BASE_PATH = Path(os.getcwd())
 PROMPTS_PATH = BASE_PATH / "prompts"
