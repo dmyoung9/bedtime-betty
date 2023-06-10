@@ -6,7 +6,7 @@ from .validation import (
     IdeaModel,
     LessonModel,
     SectionModel,
-    StoryModel,
+    CoverModel,
 )
 
 
@@ -35,11 +35,15 @@ class LessonRequestModel(ItemRequestModel):
 
 
 class SectionRequestModel(ItemRequestModel):
+    age: int
+    cover: CoverModel
     obj: Type[SectionModel] = SectionModel
 
 
-class StoryRequestModel(ItemRequestModel):
-    obj: Type[StoryModel] = StoryModel
+class CoverRequestModel(ItemRequestModel):
+    num: int
+    age: int
+    obj: Type[CoverModel] = CoverModel
 
 
 # class StoryCreateRequest(BaseModel):

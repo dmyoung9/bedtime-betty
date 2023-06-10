@@ -5,7 +5,7 @@ from .validation import (
     IdeaModel,
     LessonModel,
     SectionModel,
-    StoryModel,
+    CoverModel,
 )
 
 
@@ -29,5 +29,5 @@ class SectionResponseModel(ItemResponseModel[SectionModel]):
     pass
 
 
-class StoryResponseModel(ItemResponseModel[StoryModel]):
+class CoverResponseModel(ItemResponseModel[CoverModel]):
     pass

@@ -8,7 +8,7 @@ from .request import (
     IdeaRequestModel,
     LessonRequestModel,
     SectionRequestModel,
-    StoryRequestModel,
+    CoverRequestModel,
 )
 from .response import (
     ArtistResponseModel,
@@ -16,7 +16,7 @@ from .response import (
     IdeaResponseModel,
     LessonResponseModel,
     SectionResponseModel,
-    StoryResponseModel,
+    CoverResponseModel,
 )
 from .validation import (
     ArtistModel,
@@ -24,7 +24,7 @@ from .validation import (
     IdeaModel,
     LessonModel,
     SectionModel,
-    StoryModel,
+    CoverModel,
 )
 
 
@@ -117,7 +117,7 @@ class Section(Item):
 
 
 @dataclass
-class Story(Item):
+class Cover(Item):
     author: str
     illustrator: str
     title: str
@@ -126,20 +126,16 @@ class Story(Item):
     lesson: str
 
     @classmethod
-    def model(cls) -> Type[StoryModel]:
-        return StoryModel
+    def model(cls) -> Type[CoverModel]:
+        return CoverModel
 
     @classmethod
-    def request_model(cls) -> Type[StoryRequestModel]:
-        return StoryRequestModel
+    def request_model(cls) -> Type[CoverRequestModel]:
+        return CoverRequestModel
 
     @classmethod
-    def response_model(cls) -> Type[StoryResponseModel]:
-        return StoryResponseModel
-
-    @classmethod
-    def plural(cls) -> str:
-        return "stories"
+    def response_model(cls) -> Type[CoverResponseModel]:
+        return CoverResponseModel
 
     def __str__(self) -> str:
         return (
