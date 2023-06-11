@@ -1,4 +1,3 @@
-from typing import Type
 from . import ItemCreateModel, ItemRequestModel
 from .validation import (
     ArtistModel,
@@ -11,54 +10,39 @@ from .validation import (
 )
 
 
-class ArtistRequestModel(ItemRequestModel):
+class ArtistRequestModel(ItemRequestModel[ArtistModel]):
     num: int
     age: int
-    obj: Type[ArtistModel] = ArtistModel
 
 
-class AuthorRequestModel(ItemRequestModel):
+class AuthorRequestModel(ItemRequestModel[AuthorModel]):
     num: int
     age: int
-    obj: Type[AuthorModel] = AuthorModel
 
 
-class IdeaRequestModel(ItemRequestModel):
+class IdeaRequestModel(ItemRequestModel[IdeaModel]):
     num: int
     age: int
-    obj: Type[IdeaModel] = IdeaModel
 
 
-class LessonRequestModel(ItemRequestModel):
+class LessonRequestModel(ItemRequestModel[LessonModel]):
     num: int
     age: int
-    obj: Type[LessonModel] = LessonModel
 
 
-class SectionRequestModel(ItemRequestModel):
+class SectionRequestModel(ItemRequestModel[SectionModel]):
     age: int
     cover: CoverModel
-    obj: Type[SectionModel] = SectionModel
 
 
-class CoverRequestModel(ItemRequestModel):
+class CoverRequestModel(ItemRequestModel[CoverModel]):
     num: int
     age: int
-    obj: Type[CoverModel] = CoverModel
 
 
-class StoryRequestModel(ItemRequestModel):
+class StoryRequestModel(ItemRequestModel[StoryModel]):
     id: int
-    obj: Type[StoryModel] = StoryModel
 
 
-class StoryCreateModel(ItemCreateModel):
-    age: int
-    author: str
-    illustrator: str
-    title: str
-    emoji: str
-    outline: str
-    lesson: str
+class StoryCreateModel(ItemCreateModel[StoryModel]):
     sections: list[SectionModel] = []
-    obj: Type[StoryModel] = StoryModel

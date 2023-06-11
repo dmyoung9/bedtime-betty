@@ -55,7 +55,6 @@ class ChatAPI:
         for step in prompts:
             chat_prompt = ChatPromptTemplate.from_messages(step).format(**info)
             output = await chain.arun(input=chat_prompt, callbacks=callbacks)
-            print()
 
         return [obj(**item) for item in self._parse_response(output, obj)]
 

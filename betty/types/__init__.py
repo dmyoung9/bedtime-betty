@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from abc import ABCMeta
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Generic, Type, TypeVar
 
 from pydantic import BaseModel
+from pydantic.generics import GenericModel
 
 
-T = TypeVar("T")
+ItemType = TypeVar("ItemType", bound="Item")
+ModelType = TypeVar("ModelType", bound="ItemModel")
 
 
 @dataclass
@@ -17,15 +19,15 @@ class Item(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @classmethod
-    def request_model(cls) -> Type[ItemRequestModel]:
+    def request_model(cls) -> Type[ItemRequestModel[ItemModel]]:
         raise NotImplementedError()
 
     @classmethod
-    def create_model(cls) -> Type[ItemCreateModel]:
+    def create_model(cls) -> Type[ItemCreateModel[ItemModel]]:
         raise NotImplementedError()
 
     @classmethod
-    def response_model(cls) -> Type[ItemResponseModel]:
+    def response_model(cls) -> Type[ItemResponseModel[ItemModel]]:
         raise NotImplementedError()
 
     @classmethod
@@ -37,17 +39,22 @@ class Item(metaclass=ABCMeta):
         return f"{cls.key()}s"
 
 
-class ItemModel(BaseModel):
+class ItemModel(BaseModel, Generic[ItemType, ModelType]):
+    @classmethod
+    def from_item(cls, item: ItemType):
+        return cls(**asdict(item))
+
+    def to_item(self) -> ItemType:
+        return self.obj(**self.dict())
+
+
+class ItemCreateModel(GenericModel, Generic[ModelType]):
+    _obj: Type[ModelType]
+
+
+class ItemRequestModel(GenericModel, Generic[ModelType]):
     pass
 
 
-class ItemCreateModel(BaseModel):
-    obj: Type[ItemModel]
-
-
-class ItemRequestModel(BaseModel):
-    obj: Type[ItemModel]
-
-
-class ItemResponseModel(BaseModel, Generic[T]):
-    data: list[T]
+class ItemResponseModel(GenericModel, Generic[ModelType]):
+    data: list[ModelType]

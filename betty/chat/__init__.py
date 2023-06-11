@@ -55,6 +55,7 @@ class JSONStreamingHandler(AsyncCallbackHandler):
             obj = self.data_obj(
                 **dict(self.parser.parse("".join(self.buffer[self.start_position :])))
             )
+
             self.start_position = self.START_POSITION_DEFAULT
             self._reset_buffer()
             return obj
