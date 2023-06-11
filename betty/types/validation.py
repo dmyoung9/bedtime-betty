@@ -33,3 +33,7 @@ class CoverModel(ItemModel):
     emoji: str = Field(description="emoji that convey the plot of the story")
     outline: str = Field(description="short outline of the plot of the story")
     lesson: str = Field(description="lesson the story subtly teaches")
+
+
+class StoryModel(CoverModel):
+    sections: list[SectionModel] = Field(description="sections of the story")

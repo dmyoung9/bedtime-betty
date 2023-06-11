@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 from dataclasses import dataclass
 from typing import Generic, Type, TypeVar
 
@@ -13,19 +13,20 @@ T = TypeVar("T")
 @dataclass
 class Item(metaclass=ABCMeta):
     @classmethod
-    @abstractmethod
     def model(cls) -> Type[ItemModel]:
-        ...
+        raise NotImplementedError()
 
     @classmethod
-    @abstractmethod
     def request_model(cls) -> Type[ItemRequestModel]:
-        ...
+        raise NotImplementedError()
 
     @classmethod
-    @abstractmethod
+    def create_model(cls) -> Type[ItemCreateModel]:
+        raise NotImplementedError()
+
+    @classmethod
     def response_model(cls) -> Type[ItemResponseModel]:
-        ...
+        raise NotImplementedError()
 
     @classmethod
     def key(cls) -> str:
@@ -38,6 +39,10 @@ class Item(metaclass=ABCMeta):
 
 class ItemModel(BaseModel):
     pass
+
+
+class ItemCreateModel(BaseModel):
+    obj: Type[ItemModel]
 
 
 class ItemRequestModel(BaseModel):

@@ -2,10 +2,11 @@ from . import ItemResponseModel
 from .validation import (
     ArtistModel,
     AuthorModel,
+    CoverModel,
     IdeaModel,
     LessonModel,
     SectionModel,
-    CoverModel,
+    StoryModel,
 )
 
 
@@ -30,4 +31,8 @@ class SectionResponseModel(ItemResponseModel[SectionModel]):
 
 
 class CoverResponseModel(ItemResponseModel[CoverModel]):
+    pass
+
+
+class StoryResponseModel(ItemResponseModel[StoryModel]):
     pass

@@ -5,26 +5,30 @@ from . import Item
 from .request import (
     ArtistRequestModel,
     AuthorRequestModel,
+    CoverRequestModel,
     IdeaRequestModel,
     LessonRequestModel,
     SectionRequestModel,
-    CoverRequestModel,
+    StoryCreateModel,
+    StoryRequestModel,
 )
 from .response import (
     ArtistResponseModel,
     AuthorResponseModel,
+    CoverResponseModel,
     IdeaResponseModel,
     LessonResponseModel,
     SectionResponseModel,
-    CoverResponseModel,
+    StoryResponseModel,
 )
 from .validation import (
     ArtistModel,
     AuthorModel,
+    CoverModel,
     IdeaModel,
     LessonModel,
     SectionModel,
-    CoverModel,
+    StoryModel,
 )
 
 
@@ -145,3 +149,22 @@ class Cover(Item):
             f"{self.outline}\n"
             f"about '{self.lesson}'"
         )
+
+
+@dataclass
+class Story(Cover):
+    @classmethod
+    def model(cls) -> Type[StoryModel]:
+        return StoryModel
+
+    @classmethod
+    def request_model(cls) -> Type[StoryRequestModel]:
+        return StoryRequestModel
+
+    @classmethod
+    def response_model(cls) -> Type[StoryResponseModel]:
+        return StoryResponseModel
+
+    @classmethod
+    def create_model(cls) -> Type[StoryCreateModel]:
+        return StoryCreateModel

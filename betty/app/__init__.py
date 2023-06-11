@@ -8,7 +8,7 @@ from quart import Quart, render_template  # , send_from_directory
 
 from .views import api_blueprint
 
-from .database import db
+from ..database import db
 from .config import Config
 
 import mimetypes

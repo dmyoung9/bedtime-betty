@@ -1,12 +1,13 @@
 from typing import Type
-from . import ItemRequestModel
+from . import ItemCreateModel, ItemRequestModel
 from .validation import (
     ArtistModel,
     AuthorModel,
+    CoverModel,
     IdeaModel,
     LessonModel,
     SectionModel,
-    CoverModel,
+    StoryModel,
 )
 
 
@@ -46,14 +47,18 @@ class CoverRequestModel(ItemRequestModel):
     obj: Type[CoverModel] = CoverModel
 
 
-# class StoryCreateRequest(BaseModel):
-#     age: int
-#     story_idea: Idea
-#     story_lesson: Lesson
-#     story_author: Author
-#     story_artist: Artist
-#     story_title: Title
-#     story_pages: list[Page] = []
+class StoryRequestModel(ItemRequestModel):
+    id: int
+    obj: Type[StoryModel] = StoryModel
 
-#     class Config:
-#         extra = "forbid"
+
+class StoryCreateModel(ItemCreateModel):
+    age: int
+    author: str
+    illustrator: str
+    title: str
+    emoji: str
+    outline: str
+    lesson: str
+    sections: list[SectionModel] = []
+    obj: Type[StoryModel] = StoryModel
