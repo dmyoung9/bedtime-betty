@@ -80,37 +80,6 @@ class Idea(Item):
 
 
 # @dataclass
-# class Cover(Item):
-#     author: str
-#     illustrator: str
-#     title: str
-#     emoji: str
-#     outline: str
-#     lesson: str
-
-#     @classmethod
-#     def model(cls) -> Type[CoverModel]:
-#         return CoverModel
-
-#     @classmethod
-#     def request_model(cls) -> Type[CoverRequestModel]:
-#         return CoverRequestModel
-
-#     @classmethod
-#     def response_model(cls) -> Type[ItemResponseModel[CoverModel]]:
-#         return ItemResponseModel[CoverModel]
-
-#     def __str__(self) -> str:
-#         return (
-#             f"# {self.emoji} {self.title}\n"
-#             f"written in the style of {self.author}\n"
-#             f"with illustrations similar to {self.illustrator}\n"
-#             f"{self.outline}\n"
-#             f"about '{self.lesson}'"
-#         )
-
-
-# @dataclass
 # class Story(Cover):
 #     @classmethod
 #     def model(cls) -> Type[StoryModel]:

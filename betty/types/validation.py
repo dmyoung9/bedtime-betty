@@ -48,14 +48,5 @@ class IdeaCompletionRequestModel(ItemRequestModel[IdeaModel]):
 #     content: str = Field(description="the content of this section")
 
 
-# class CoverModel(ItemModel):
-#     author: str = Field(description="author of the story")
-#     illustrator: str = Field(description="illustrator of the story")
-#     title: str = Field(description="title of the story")
-#     emoji: str = Field(description="emoji that convey the plot of the story")
-#     outline: str = Field(description="short outline of the plot of the story")
-#     lesson: str = Field(description="lesson the story subtly teaches")
-
-
 # class StoryModel(CoverModel):
 #     sections: list[SectionModel] = Field(description="sections of the story")

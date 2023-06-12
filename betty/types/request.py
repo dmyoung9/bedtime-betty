@@ -18,11 +18,6 @@
 #     cover: CoverModel
 
 
-# class CoverRequestModel(ItemRequestModel[CoverModel]):
-#     num: int
-#     age: int
-
-
 # class StoryRequestModel(ItemRequestModel[StoryModel]):
 #     id: int
 
