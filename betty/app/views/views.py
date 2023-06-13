@@ -1,6 +1,8 @@
+from typing import Type
+
 from quart import views
 
-from betty.types import ItemModel
+from betty.types import Item
 
 from .common import (
     handle_create_request,
@@ -10,8 +12,8 @@ from .common import (
 
 
 class BaseModelView(views.MethodView):
-    def __init__(self, item_model: ItemModel):
-        self.item_model = item_model
+    def __init__(self, item: Type[Item]):
+        self.item = item
 
     @classmethod
     def as_view(cls, name, *class_args, **class_kwargs):
@@ -22,23 +24,23 @@ class BaseModelView(views.MethodView):
 
 class CreateItemsView(BaseModelView):
     async def post(self):
-        return await handle_create_request(self.item_model)
+        return await handle_create_request(self.item)
 
 
 class GenerateItemsView(BaseModelView):
     async def post(self):
-        return await handle_generate_request(self.item_model)
+        return await handle_generate_request(self.item)
 
 
 class StreamItemsView(views.View):
     methods = ["GET"]
 
-    def __init__(self, item_model: ItemModel, *class_args, **class_kwargs):
-        self.item_model = item_model
+    def __init__(self, item: Type[Item], *class_args, **class_kwargs):
+        self.item = item
 
     async def dispatch_request(self, **kwargs):
         return await self.websocket()
 
     async def websocket(self):
         while True:
-            await handle_stream_request(self.item_model)
+            await handle_stream_request(self.item)

@@ -6,7 +6,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.output_parsers import PydanticOutputParser
 from langchain.schema import ChatMessage
 
-from ..types import ItemModel
+from ..types import Item
 
 
 class RoleBasedConversationBufferMemory(ConversationBufferMemory):
@@ -24,19 +24,21 @@ class JSONStreamingHandler(AsyncCallbackHandler):
 
     def __init__(
         self,
-        obj: Type[ItemModel],
-        callback_func: Callable[[ItemModel], Awaitable[Any]],
+        item_type: Type[Item],
+        callback_func: Callable[[Item], Awaitable[Any]],
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.item_model = obj
+        self.item_type = item_type
         self.callback_func = callback_func
         self.buffer: list[str] = []
         self.start_position = self.START_POSITION_DEFAULT
         self.brace_count = 0
         self.in_array = False
-        self.parser = PydanticOutputParser(pydantic_object=self.item_model)
+        self.parser = PydanticOutputParser(
+            pydantic_object=self.item_type.get_item_model()
+        )
 
     def _update_buffer(self, char: str) -> None:
         self.buffer.append(char)
@@ -49,10 +51,10 @@ class JSONStreamingHandler(AsyncCallbackHandler):
             self.start_position = len(self.buffer) - 1
         self.brace_count += 1
 
-    def _handle_close_brace(self) -> Optional[ItemModel]:
+    def _handle_close_brace(self) -> Optional[Item]:
         self.brace_count -= 1
         if self.brace_count == 0:
-            obj = self.item_model(
+            obj = self.item_type(
                 **dict(self.parser.parse("".join(self.buffer[self.start_position :])))
             )
 
@@ -62,7 +64,7 @@ class JSONStreamingHandler(AsyncCallbackHandler):
 
         return None
 
-    def _check_token(self, token: str) -> Optional[ItemModel]:
+    def _check_token(self, token: str) -> Optional[Item]:
         obj = None
 
         for char in token:

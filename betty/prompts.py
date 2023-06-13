@@ -17,15 +17,15 @@ def load_prompt(filename: Union[str, Path]) -> str:
 
 
 def get_prompts_for_item(
-    obj: Optional[Type[Item]] = None,
+    item_type: Optional[Type[Item]] = None,
 ) -> list[list[ChatMessagePromptTemplate]]:
     prompts = []
-    if obj is None:
+    if item_type is None:
         prompts_path = PROMPTS_PATH / "system"
         datafile_path = prompts_path / "system.json"
     else:
-        prompts_path = PROMPTS_PATH / obj.plural()
-        datafile_path = prompts_path / f"{obj.plural()}.json"
+        prompts_path = PROMPTS_PATH / item_type.plural()
+        datafile_path = prompts_path / f"{item_type.plural()}.json"
 
     metadata = json.loads(load_prompt(datafile_path))
 
@@ -36,7 +36,7 @@ def get_prompts_for_item(
 
             prompt_template = (
                 SystemMessagePromptTemplate.from_template(template=message, **prompt)
-                if obj is None
+                if item_type is None
                 else ChatMessagePromptTemplate.from_template(template=message, **prompt)
             )
 

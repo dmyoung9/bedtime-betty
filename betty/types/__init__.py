@@ -13,7 +13,7 @@ ModelType = TypeVar("ModelType", bound="ItemModel")
 
 
 @dataclass
-class Item(metaclass=ABCMeta):
+class Item(Generic[ItemType], metaclass=ABCMeta):
     @classmethod
     def key(cls) -> str:
         return cls.__name__.lower()
@@ -22,11 +22,9 @@ class Item(metaclass=ABCMeta):
     def plural(cls) -> str:
         return f"{cls.key()}s"
 
-
-class ItemModel(BaseModel, Generic[ItemType]):
     @classmethod
     @abstractmethod
-    def get_dataclass(cls) -> Type[ItemType]:
+    def get_item_model(cls) -> Type[ItemModel[ItemType]]:
         ...
 
     @classmethod
@@ -40,8 +38,8 @@ class ItemModel(BaseModel, Generic[ItemType]):
         ...
 
 
-class ItemCreateModel(GenericModel, Generic[ModelType]):
-    _obj: Type[ModelType]
+class ItemModel(BaseModel, Generic[ItemType]):
+    pass
 
 
 class ItemRequestModel(GenericModel, Generic[ModelType]):

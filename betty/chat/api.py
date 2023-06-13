@@ -29,26 +29,27 @@ class ChatAPI:
         self.ai_prefix = ai_prefix
 
     def _parse_response(
-        self, output: str, obj: Type[ItemResponseModel]
+        self, output: str, response_model: Type[ItemResponseModel]
     ) -> list[ItemModel]:
-        parser = PydanticOutputParser(pydantic_object=obj)
+        parser = PydanticOutputParser(pydantic_object=response_model)
         try:
             return parser.parse(output).dict()["data"]
         except OutputParserException:
-            return self._parse_response(json.dumps(ast.literal_eval(output)), obj)
+            return self._parse_response(
+                json.dumps(ast.literal_eval(output)), response_model
+            )
 
     async def _run_chain(
         self,
-        obj: Type[ItemModel],
+        item_type: Type[Item],
         chat: ChatOpenAI,
         callbacks: list[BaseCallbackHandler],
         *args,
         **kwargs
     ) -> list[Item]:
-        obj_class = obj.get_dataclass()
-        obj_response: Type[ItemResponseModel] = obj.get_response_model()
+        obj_response: Type[ItemResponseModel] = item_type.get_response_model()
 
-        info = {"obj_key": obj_class.key(), "obj_plural": obj_class.plural()}
+        info = {"obj_key": item_type.key(), "obj_plural": item_type.plural()}
         info["plural"] = "s" if kwargs.get("num", 1) > 1 else ""
         info.update(kwargs)
 
@@ -56,28 +57,28 @@ class ChatAPI:
         memory = RoleBasedConversationBufferMemory(ai_prefix=self.ai_prefix)
         chain = ConversationChain(llm=chat, prompt=system_prompt, memory=memory)
 
-        prompts = get_prompts_for_item(obj_class)
+        prompts = get_prompts_for_item(item_type)
         for step in prompts:
             chat_prompt = ChatPromptTemplate.from_messages(step).format(**info)
             output = await chain.arun(input=chat_prompt, callbacks=callbacks)
 
         return [
-            obj_class(**item) for item in self._parse_response(output, obj_response)
+            item_type(**item) for item in self._parse_response(output, obj_response)
         ]
 
-    async def generate(self, obj: Type[ItemModel], *args, **kwargs) -> list[Item]:
+    async def generate(self, item_type: Type[Item], *args, **kwargs) -> list[Item]:
         chat = ChatOpenAI(**self.chat_kwargs)
 
-        return await self._run_chain(obj, chat, [], *args, **kwargs)
+        return await self._run_chain(item_type, chat, [], *args, **kwargs)
 
     async def stream(
         self,
-        obj: Type[ItemModel],
-        callback_func: Callable[[ItemModel], Coroutine[Any, Any, None]],
+        item_type: Type[Item],
+        callback_func: Callable[[Item], Coroutine[Any, Any, None]],
         *args,
         **kwargs
     ) -> None:
         chat = ChatOpenAI(streaming=True, **self.chat_kwargs)
-        callbacks = [JSONStreamingHandler(obj, callback_func)]
+        callbacks = [JSONStreamingHandler(item_type, callback_func)]
 
-        await self._run_chain(obj, chat, callbacks, *args, **kwargs)
+        await self._run_chain(item_type, chat, callbacks, *args, **kwargs)

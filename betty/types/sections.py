@@ -12,13 +12,9 @@ from . import Item, ItemModel, ItemRequestModel, ItemResponseModel
 class Section(Item):
     content: str
 
-
-class SectionModel(ItemModel[Section]):
-    content: str = Field(description="the content of this section")
-
     @classmethod
-    def get_dataclass(cls) -> Type[Section]:
-        return Section
+    def get_item_model(cls) -> Type[SectionModel]:
+        return SectionModel
 
     @classmethod
     def get_completion_request_model(cls) -> Type[SectionCompletionRequestModel]:
@@ -27,6 +23,10 @@ class SectionModel(ItemModel[Section]):
     @classmethod
     def get_response_model(cls) -> Type[ItemResponseModel[SectionModel]]:
         return ItemResponseModel[SectionModel]
+
+
+class SectionModel(ItemModel[Section]):
+    content: str = Field(description="the content of this section")
 
 
 class SectionCompletionRequestModel(ItemRequestModel[SectionModel]):

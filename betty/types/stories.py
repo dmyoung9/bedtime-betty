@@ -18,6 +18,18 @@ class Story(Item):
     outline: str
     lesson: str
 
+    @classmethod
+    def get_item_model(cls) -> Type[StoryModel]:
+        return StoryModel
+
+    @classmethod
+    def get_completion_request_model(cls) -> Type[ItemRequestModel[ItemModel]]:
+        raise NotImplementedError()
+
+    @classmethod
+    def get_response_model(cls) -> Type[ItemResponseModel[StoryModel]]:
+        return ItemResponseModel[StoryModel]
+
 
 class StoryModel(ItemModel[Story]):
     age: int
@@ -28,15 +40,3 @@ class StoryModel(ItemModel[Story]):
     lesson: str = Field(description="lesson the story subtly teaches")
 
     sections: list[SectionModel] = []
-
-    @classmethod
-    def get_dataclass(cls) -> Type[Story]:
-        return Story
-
-    @classmethod
-    def get_completion_request_model(cls) -> Type[ItemRequestModel[ItemModel]]:
-        raise NotImplementedError()
-
-    @classmethod
-    def get_response_model(cls) -> Type[ItemResponseModel[StoryModel]]:
-        return ItemResponseModel[StoryModel]
