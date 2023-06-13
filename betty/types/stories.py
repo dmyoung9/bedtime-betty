@@ -18,16 +18,16 @@ class Story(Item):
     outline: str
     lesson: str
 
-    @classmethod
-    def get_item_model(cls) -> Type[StoryModel]:
+    @staticmethod
+    def get_item_model() -> Type[StoryModel]:
         return StoryModel
 
-    @classmethod
-    def get_completion_request_model(cls) -> Type[ItemRequestModel[ItemModel]]:
+    @staticmethod
+    def get_completion_request_model() -> Type[ItemRequestModel[ItemModel]]:
         raise NotImplementedError()
 
-    @classmethod
-    def get_response_model(cls) -> Type[ItemResponseModel[StoryModel]]:
+    @staticmethod
+    def get_response_model() -> Type[ItemResponseModel[StoryModel]]:
         return ItemResponseModel[StoryModel]
 
 

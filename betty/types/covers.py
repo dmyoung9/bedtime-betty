@@ -17,16 +17,16 @@ class Cover(Item):
     outline: str
     lesson: str
 
-    @classmethod
-    def get_item_model(cls) -> Type[CoverModel]:
+    @staticmethod
+    def get_item_model() -> Type[CoverModel]:
         return CoverModel
 
-    @classmethod
-    def get_completion_request_model(cls) -> Type[CoverCompletionRequestModel]:
+    @staticmethod
+    def get_completion_request_model() -> Type[CoverCompletionRequestModel]:
         return CoverCompletionRequestModel
 
-    @classmethod
-    def get_response_model(cls) -> Type[ItemResponseModel[CoverModel]]:
+    @staticmethod
+    def get_response_model() -> Type[ItemResponseModel[CoverModel]]:
         return ItemResponseModel[CoverModel]
 
 

@@ -22,19 +22,19 @@ class Item(Generic[ItemType], metaclass=ABCMeta):
     def plural(cls) -> str:
         return f"{cls.key()}s"
 
-    @classmethod
+    @staticmethod
     @abstractmethod
-    def get_item_model(cls) -> Type[ItemModel[ItemType]]:
+    def get_item_model() -> Type[ItemModel[ItemType]]:
         ...
 
-    @classmethod
+    @staticmethod
     @abstractmethod
-    def get_completion_request_model(cls) -> Type[ItemRequestModel[ModelType]]:
+    def get_completion_request_model() -> Type[ItemRequestModel[ModelType]]:
         ...
 
-    @classmethod
+    @staticmethod
     @abstractmethod
-    def get_response_model(cls) -> Type[ItemResponseModel[ModelType]]:
+    def get_response_model() -> Type[ItemResponseModel[ModelType]]:
         ...
 
 

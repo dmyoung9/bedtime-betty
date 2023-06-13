@@ -12,16 +12,16 @@ from . import Item, ItemModel, ItemRequestModel, ItemResponseModel
 class Section(Item):
     content: str
 
-    @classmethod
-    def get_item_model(cls) -> Type[SectionModel]:
+    @staticmethod
+    def get_item_model() -> Type[SectionModel]:
         return SectionModel
 
-    @classmethod
-    def get_completion_request_model(cls) -> Type[SectionCompletionRequestModel]:
+    @staticmethod
+    def get_completion_request_model() -> Type[SectionCompletionRequestModel]:
         return SectionCompletionRequestModel
 
-    @classmethod
-    def get_response_model(cls) -> Type[ItemResponseModel[SectionModel]]:
+    @staticmethod
+    def get_response_model() -> Type[ItemResponseModel[SectionModel]]:
         return ItemResponseModel[SectionModel]
 
 
