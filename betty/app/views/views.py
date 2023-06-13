@@ -3,7 +3,7 @@ from quart import views
 from betty.types import ItemModel
 
 from .common import (
-    # handle_create_request,
+    handle_create_request,
     handle_generate_request,
     handle_stream_request,
 )
@@ -20,9 +20,9 @@ class BaseModelView(views.MethodView):
         return view
 
 
-# class CreateItemsView(BaseModelView):
-#     async def post(self):
-#         return await handle_create_request(self.item)
+class CreateItemsView(BaseModelView):
+    async def post(self):
+        return await handle_create_request(self.item_model)
 
 
 class GenerateItemsView(BaseModelView):

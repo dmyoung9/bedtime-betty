@@ -26,7 +26,6 @@ class Sections(Items):
 class Stories(Items):
     age: Mapped[int] = db.Column(db.Integer)
     author: Mapped[str] = db.Column(db.String)
-    illustrator: Mapped[str] = db.Column(db.String)
     title: Mapped[str] = db.Column(db.String, unique=True)
     emoji: Mapped[str] = db.Column(db.String, unique=True)
     outline: Mapped[str] = db.Column(db.String, unique=True)

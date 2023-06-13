@@ -5,7 +5,7 @@
                 {
                     "filename": "brainstorm.md",
                     "input_variables": [
-                        "age", "cover"
+                        "age", "author", "emoji", "title", "lesson", "outline"
                     ],
                     "role": "Parent"
                 }

@@ -6,7 +6,6 @@ from typing import Type
 from pydantic import Field
 
 from . import Item, ItemModel, ItemRequestModel, ItemResponseModel
-from .covers import CoverModel
 
 
 @dataclass
@@ -32,4 +31,8 @@ class SectionModel(ItemModel[Section]):
 
 class SectionCompletionRequestModel(ItemRequestModel[SectionModel]):
     age: int
-    cover: CoverModel
+    author: str = Field(description="author of the story")
+    title: str = Field(description="title of the story")
+    emoji: str = Field(description="emoji that convey the plot of the story")
+    outline: str = Field(description="short outline of the plot of the story")
+    lesson: str = Field(description="lesson the story subtly teaches")

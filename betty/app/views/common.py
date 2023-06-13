@@ -3,32 +3,29 @@ from __future__ import annotations
 import json
 from typing import Type
 
-from quart import request, websocket
+from quart import jsonify, request, websocket
 
-# from betty.types.database import Stories
+from betty.types.database import Stories
 from betty.chat.api import ChatAPI
 from betty.types import ItemModel
 
-# from ...database import db
+from ...database import db
 
 DEBUG = False
 
 
-# async def handle_create_request(obj: Type[Item]):
-#     data = await request.get_json()
-#     data["obj"] = obj.model()
-#     item_request = obj.create_model().parse_obj(data)
-#     request_dict = item_request.dict()
-#     request_dict.pop("obj", None)
+async def handle_create_request(obj: Type[ItemModel]):
+    data = await request.get_json()
+    item_request = obj.parse_obj(data).dict()
 
-#     story = Stories(**request_dict)
+    story = Stories(**item_request)
 
-#     db.session.add(story)
-#     db.session.commit()
+    db.session.add(story)
+    db.session.commit()
 
-#     # items = await story_generator.generate(obj, **request_dict)
+    # items = await story_generator.generate(obj, **request_dict)
 
-#     return jsonify({"story": story.id}), 201
+    return jsonify({"story": story.id}), 201
 
 
 async def handle_generate_request(obj: Type[ItemModel]):
