@@ -17,7 +17,8 @@ quart-cors = "^0.6.0"
 pyyaml = "^6.0"
 emoji = "^2.2.0"
 pydantic = "^1.10.7"
-langchain = "^0.0.181"
+langchain = "^0.0.200"
+sqlalchemy-serializer = "^1.4.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.263"
