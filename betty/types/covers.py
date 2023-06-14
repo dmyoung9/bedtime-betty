@@ -5,7 +5,7 @@ from typing import Type
 
 from pydantic import Field
 
-from . import Item, ItemModel, ItemRequestModel, ItemResponseModel
+from . import Item, ItemDatabaseModel, ItemModel, ItemRequestModel, ItemResponseModel
 
 
 @dataclass
@@ -28,6 +28,10 @@ class Cover(Item):
     @staticmethod
     def get_response_model() -> Type[ItemResponseModel[CoverModel]]:
         return ItemResponseModel[CoverModel]
+
+    @staticmethod
+    def get_database_model() -> Type[ItemDatabaseModel]:
+        raise NotImplementedError()
 
 
 class CoverModel(ItemModel[Cover]):

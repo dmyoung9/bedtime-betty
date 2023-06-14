@@ -5,8 +5,11 @@ from typing import Type
 
 from pydantic import Field
 
-from . import Item, ItemModel, ItemRequestModel, ItemResponseModel
-from .sections import SectionModel
+from sqlalchemy.orm import Mapped
+
+from . import Item, ItemDatabaseModel, ItemModel, ItemRequestModel, ItemResponseModel
+from .sections import SectionDatabaseModel, SectionModel
+from ..database import db
 
 
 @dataclass
@@ -30,6 +33,10 @@ class Story(Item):
     def get_response_model() -> Type[ItemResponseModel[StoryModel]]:
         return ItemResponseModel[StoryModel]
 
+    @staticmethod
+    def get_database_model() -> Type[ItemDatabaseModel]:
+        return StoryDatabaseModel
+
 
 class StoryModel(ItemModel[Story]):
     age: int
@@ -40,3 +47,16 @@ class StoryModel(ItemModel[Story]):
     lesson: str = Field(description="lesson the story subtly teaches")
 
     sections: list[SectionModel] = []
+
+
+class StoryDatabaseModel(ItemDatabaseModel):
+    __tablename__ = "stories"
+
+    age: Mapped[int] = db.Column(db.Integer)
+    author: Mapped[str] = db.Column(db.String)
+    title: Mapped[str] = db.Column(db.String, unique=True)
+    emoji: Mapped[str] = db.Column(db.String, unique=True)
+    outline: Mapped[str] = db.Column(db.String, unique=True)
+    lesson: Mapped[str] = db.Column(db.String)
+
+    sections: Mapped[list[SectionDatabaseModel]] = db.relationship()

@@ -6,6 +6,7 @@ from betty.types import Item
 
 from .common import (
     handle_create_request,
+    handle_retrieve_request,
     handle_generate_request,
     handle_stream_request,
 )
@@ -30,6 +31,11 @@ class CreateItemsView(BaseModelView):
 class GenerateItemsView(BaseModelView):
     async def post(self):
         return await handle_generate_request(self.item)
+
+
+class RetrieveItemsView(BaseModelView):
+    async def get(self, id):
+        return await handle_retrieve_request(self.item, id)
 
 
 class StreamItemsView(views.View):

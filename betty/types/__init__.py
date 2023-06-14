@@ -7,6 +7,11 @@ from typing import Generic, Type, TypeVar
 from pydantic import BaseModel
 from pydantic.generics import GenericModel
 
+from sqlalchemy.orm import Mapped
+from sqlalchemy_serializer import SerializerMixin
+
+from ..database import db
+
 
 ItemType = TypeVar("ItemType", bound="Item")
 ModelType = TypeVar("ModelType", bound="ItemModel")
@@ -37,6 +42,11 @@ class Item(Generic[ItemType], metaclass=ABCMeta):
     def get_response_model() -> Type[ItemResponseModel[ModelType]]:
         ...
 
+    @staticmethod
+    @abstractmethod
+    def get_database_model() -> Type[ItemDatabaseModel]:
+        ...
+
 
 class ItemModel(BaseModel, Generic[ItemType]):
     pass
@@ -46,5 +56,15 @@ class ItemRequestModel(GenericModel, Generic[ModelType]):
     pass
 
 
+class ItemRetrieveModel(ItemRequestModel[ModelType]):
+    id: int
+
+
 class ItemResponseModel(GenericModel, Generic[ModelType]):
     data: list[ModelType]
+
+
+class ItemDatabaseModel(db.Model, SerializerMixin):
+    __abstract__ = True
+
+    id: Mapped[int] = db.Column(db.Integer, primary_key=True)

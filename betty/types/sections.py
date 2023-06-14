@@ -5,7 +5,10 @@ from typing import Type
 
 from pydantic import Field
 
-from . import Item, ItemModel, ItemRequestModel, ItemResponseModel
+from sqlalchemy.orm import Mapped
+
+from . import Item, ItemDatabaseModel, ItemModel, ItemRequestModel, ItemResponseModel
+from ..database import db
 
 
 @dataclass
@@ -24,6 +27,10 @@ class Section(Item):
     def get_response_model() -> Type[ItemResponseModel[SectionModel]]:
         return ItemResponseModel[SectionModel]
 
+    @staticmethod
+    def get_database_model() -> Type[ItemDatabaseModel]:
+        raise NotImplementedError()
+
 
 class SectionModel(ItemModel[Section]):
     content: str = Field(description="the content of this section")
@@ -36,3 +43,10 @@ class SectionCompletionRequestModel(ItemRequestModel[SectionModel]):
     emoji: str = Field(description="emoji that convey the plot of the story")
     outline: str = Field(description="short outline of the plot of the story")
     lesson: str = Field(description="lesson the story subtly teaches")
+
+
+class SectionDatabaseModel(ItemDatabaseModel):
+    __tablename__ = "sections"
+
+    content: Mapped[str] = db.Column(db.String, unique=True)
+    story_id: Mapped[int] = db.Column(db.ForeignKey("stories.id"))

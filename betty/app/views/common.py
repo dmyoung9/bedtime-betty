@@ -6,7 +6,6 @@ from typing import Type
 
 from quart import jsonify, request, websocket
 
-from ...types.database import Stories
 from ...chat.api import ChatAPI
 from ...types import Item
 
@@ -19,7 +18,7 @@ async def handle_create_request(item_type: Type[Item]):
     data = await request.get_json()
     item_request = item_type.get_item_model().parse_obj(data).dict()
 
-    story = Stories(**item_request)
+    story = item_type.get_database_model()(**item_request)
 
     db.session.add(story)
     db.session.commit()
@@ -27,6 +26,11 @@ async def handle_create_request(item_type: Type[Item]):
     # items = await story_generator.generate(obj, **request_dict)
 
     return jsonify({"story": story.id}), 201
+
+
+async def handle_retrieve_request(item_type: Type[Item], id: int):
+    item = item_type.get_database_model().query.get_or_404(id)
+    return jsonify(item.to_dict())
 
 
 async def handle_generate_request(item_type: Type[Item]):
