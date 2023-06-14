@@ -29,7 +29,7 @@ class Section(Item):
 
     @staticmethod
     def get_database_model() -> Type[ItemDatabaseModel]:
-        raise NotImplementedError()
+        return SectionDatabaseModel
 
 
 class SectionModel(ItemModel[Section]):
@@ -47,6 +47,7 @@ class SectionCompletionRequestModel(ItemRequestModel[SectionModel]):
 
 class SectionDatabaseModel(ItemDatabaseModel):
     __tablename__ = "sections"
+    serialize_only = ("content",)
 
     content: Mapped[str] = db.Column(db.String, unique=True)
     story_id: Mapped[int] = db.Column(db.ForeignKey("stories.id"))

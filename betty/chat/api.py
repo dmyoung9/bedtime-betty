@@ -75,10 +75,11 @@ class ChatAPI:
         self,
         item_type: Type[Item],
         callback_func: Callable[[Item], Coroutine[Any, Any, None]],
+        callback_kwargs: dict[Any, Any],
         *args,
         **kwargs
     ) -> None:
         chat = ChatOpenAI(streaming=True, **self.chat_kwargs)
-        callbacks = [JSONStreamingHandler(item_type, callback_func)]
+        callbacks = [JSONStreamingHandler(item_type, callback_func, callback_kwargs)]
 
         await self._run_chain(item_type, chat, callbacks, *args, **kwargs)

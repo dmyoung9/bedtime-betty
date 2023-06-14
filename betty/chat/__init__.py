@@ -26,12 +26,14 @@ class JSONStreamingHandler(AsyncCallbackHandler):
         self,
         item_type: Type[Item],
         callback_func: Callable[[Item], Awaitable[Any]],
+        callback_kwargs: dict[Any, Any],
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.item_type = item_type
         self.callback_func = callback_func
+        self.callback_kwargs = callback_kwargs
         self.buffer: list[str] = []
         self.start_position = self.START_POSITION_DEFAULT
         self.brace_count = 0
@@ -90,8 +92,8 @@ class JSONStreamingHandler(AsyncCallbackHandler):
         **kwargs: Any,
     ) -> None:
         if obj := self._check_token(token):
-            return await self.callback_func(obj)
+            await self.callback_func(obj, **self.callback_kwargs)
 
-        return await super().on_llm_new_token(
+        await super().on_llm_new_token(
             token, run_id=run_id, parent_run_id=parent_run_id, **kwargs
         )

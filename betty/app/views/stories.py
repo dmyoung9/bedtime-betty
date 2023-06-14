@@ -12,8 +12,3 @@ stories_blueprint.add_url_rule(
 stories_blueprint.add_url_rule(
     "/<int:id>", view_func=RetrieveItemsView.as_view("get_stories", Story)
 )
-# stories_blueprint.add_url_rule(
-#     "/stream",
-#     view_func=StreamItemsView.as_view("stream_stories", Section),
-#     is_websocket=True,
-# )
