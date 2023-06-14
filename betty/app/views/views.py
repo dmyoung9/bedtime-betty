@@ -11,6 +11,13 @@ from ...database import db
 
 
 class BaseModelView(views.MethodView):
+    """
+    Base class for all ModelView classes.
+
+    Attributes:
+        item_type (Type[Item]): The type of the item that this view handles.
+    """
+
     def __init__(self, item_type: Type[Item]):
         self.item_type = item_type
 
@@ -22,7 +29,20 @@ class BaseModelView(views.MethodView):
 
 
 class CreateItemsView(BaseModelView):
+    """
+    A view for creating items.
+
+    Inherits from:
+        BaseModelView
+    """
+
     async def handle_create_request(self):
+        """
+        Handles a create request.
+
+        Returns:
+            A tuple of a JSON response and a status code.
+        """
         data = await request.get_json()
         item_request = self.item_type.get_item_model().parse_obj(data).dict()
 
@@ -34,11 +54,30 @@ class CreateItemsView(BaseModelView):
         return jsonify({"story": story.id}), 201
 
     async def post(self):
+        """
+        Handles a POST request.
+
+        Returns:
+            The result of handle_create_request.
+        """
         return await self.handle_create_request()
 
 
 class GenerateItemsView(BaseModelView):
+    """
+    A view for generating items.
+
+    Inherits from:
+        BaseModelView
+    """
+
     async def handle_generate_request(self):
+        """
+        Handles a generate request.
+
+        Returns:
+            A dictionary containing the total number of items and the data for the items.
+        """
         openai_api_key = request.headers.pop(
             "Authorization", "Invalid Authorization"
         ).split(" ")[1]
@@ -55,20 +94,56 @@ class GenerateItemsView(BaseModelView):
         return {"total": len(items), "data": items}
 
     async def post(self):
+        """
+        Handles a POST request.
+
+        Returns:
+            The result of handle_generate_request.
+        """
         return await self.handle_generate_request()
 
 
 class RetrieveItemsView(BaseModelView):
+    """
+    A view for retrieving items.
+
+    Inherits from:
+        BaseModelView
+    """
+
     async def handle_retrieve_request(self, id: int):
+        """
+        Handles a retrieve request.
+
+        Args:
+            id (int): The id of the item to retrieve.
+
+        Returns:
+            A JSON response containing the item data.
+        """
         item = self.item_type.get_database_model().query.get_or_404(id)
         return jsonify(item.to_dict())
 
     async def get(self, id):
+        """
+        Handles a GET request.
+
+        Args:
+            id (int): The id of the item to retrieve.
+
+        Returns:
+            The result of handle_retrieve_request.
+        """
         return await self.handle_retrieve_request(id)
 
 
 class StreamItemsView(views.View):
-    methods = ["GET"]
+    """
+    A view for streaming items.
+
+    Inherits from:
+        views.View
+    """
 
     methods = ["GET"]
 
@@ -85,11 +160,25 @@ class StreamItemsView(views.View):
         return await self.websocket(**kwargs)
 
     async def handle_streamed_item(self, item: Item, **kwargs) -> None:
+        """
+        Handles a streamed item.
+
+        Args:
+            item (Item): The item to handle.
+            **kwargs: Additional keyword arguments.
+        """
         response = {"type": "item", "data": asdict(item)}
         await websocket.send(json.dumps(response))
         print(json.dumps(response))
 
     async def handle_stream_request(self, data, **kwargs):
+        """
+        Handles a stream request.
+
+        Args:
+            data (dict): The request data.
+            **kwargs: Additional keyword arguments.
+        """
         item_request = (
             self.item_type.get_completion_request_model().parse_obj(data).dict()
         )
@@ -106,6 +195,11 @@ class StreamItemsView(views.View):
         )
 
     async def websocket(self, **kwargs):
+        """
+        Handles a websocket connection.
+
+        **kwargs: Additional keyword arguments.
+        """
         while True:
             message = await websocket.receive()
             data = json.loads(message)
