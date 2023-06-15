@@ -76,7 +76,8 @@ class GenerateItemsView(BaseModelView):
         Handles a generate request.
 
         Returns:
-            A dictionary containing the total number of items and the data for the items.
+            A dictionary containing the total number of items and the data for the
+            items.
         """
         openai_api_key = request.headers.pop(
             "Authorization", "Invalid Authorization"
@@ -135,6 +136,34 @@ class RetrieveItemsView(BaseModelView):
             The result of handle_retrieve_request.
         """
         return await self.handle_retrieve_request(id)
+
+
+class ListItemsView(BaseModelView):
+    """
+    A view for retrieving a list of existing items.
+
+    Inherits from:
+        BaseModelView
+    """
+
+    async def handle_list_request(self):
+        """
+        Handles a list request.
+
+        Returns:
+            A JSON response containing the item data.
+        """
+        items = self.item_type.get_database_model().query.all()
+        return jsonify([item.to_dict() for item in items])
+
+    async def get(self):
+        """
+        Handles a GET request.
+
+        Returns:
+            The result of handle_list_request.
+        """
+        return await self.handle_list_request()
 
 
 class StreamItemsView(views.View):
