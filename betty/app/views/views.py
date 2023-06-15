@@ -70,6 +70,8 @@ class RetrieveItemsView(BaseModelView):
 class StreamItemsView(views.View):
     methods = ["GET"]
 
+    methods = ["GET"]
+
     def __init__(self, item_type: Type[Item]):
         self.item_type = item_type
 
@@ -87,35 +89,33 @@ class StreamItemsView(views.View):
         await websocket.send(json.dumps(response))
         print(json.dumps(response))
 
-    async def handle_stream_request(self, **kwargs):
-        message = await websocket.receive()
-        data = json.loads(message)
+    async def handle_stream_request(self, data, **kwargs):
+        item_request = (
+            self.item_type.get_completion_request_model().parse_obj(data).dict()
+        )
 
-        if data.get("type") == "request":
-            data = data.get("data", {})
-            item_request = (
-                self.item_type.get_completion_request_model().parse_obj(data).dict()
-            )
+        story_generator = ChatAPI(
+            ai_prefix="Betty", openai_api_key=data.pop("api_key", "")
+        )
 
-            story_generator = ChatAPI(
-                ai_prefix="Betty", openai_api_key=data.pop("api_key", "")
-            )
-
-            start = json.dumps({"type": "start"})
-            await websocket.send(start)
-            print(start)
-
-            await story_generator.stream(
-                self.item_type,
-                **item_request,
-                callback_func=self.handle_streamed_item,
-                callback_kwargs=kwargs
-            )
-
-            end = json.dumps({"type": "end"})
-            await websocket.send(end)
-            print(end)
+        await story_generator.stream(
+            self.item_type,
+            **item_request,
+            callback_func=self.handle_streamed_item,
+            callback_kwargs=kwargs
+        )
 
     async def websocket(self, **kwargs):
         while True:
-            await self.handle_stream_request(**kwargs)
+            message = await websocket.receive()
+            data = json.loads(message)
+            if data.get("type") == "request":
+                start = json.dumps({"type": "start"})
+                await websocket.send(start)
+                print(start)
+
+                await self.handle_stream_request(data.get("data", {}), **kwargs)
+
+                end = json.dumps({"type": "end"})
+                await websocket.send(end)
+                print(end)

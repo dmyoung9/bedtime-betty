@@ -1,9 +1,6 @@
 from dataclasses import asdict
-import json
 
-from quart import Blueprint, websocket
-
-from betty.chat.api import ChatAPI
+from quart import Blueprint
 from betty.database import db
 from betty.types import Item
 from betty.types.sections import Section, SectionDatabaseModel
@@ -31,39 +28,19 @@ class StreamSectionsView(StreamItemsView):
 
         await super().handle_streamed_item(item, **kwargs)
 
-    async def handle_stream_request(self, **kwargs):
-        message = await websocket.receive()
-        data = json.loads(message)
+    async def handle_stream_request(self, data, **kwargs):
+        story_item = StoryDatabaseModel.query.get_or_404(kwargs.get("id"))
 
-        if data.get("type") == "request":
-            story_item = StoryDatabaseModel.query.get_or_404(kwargs.get("id"))
-            start = json.dumps({"type": "start"})
-            await websocket.send(start)
-            print(start)
-
-            if story_item.sections:
-                for section in story_item.sections:
-                    await self.handle_existing_item(
-                        section,
-                        **kwargs,
-                    )
-            else:
-                item_request = story_item.to_dict()
-
-                story_generator = ChatAPI(
-                    ai_prefix="Betty", openai_api_key=data.pop("api_key", "")
+        if story_item.sections:
+            for section in story_item.sections:
+                await self.handle_existing_item(
+                    section,
+                    **kwargs,
                 )
-
-                await story_generator.stream(
-                    self.item_type,
-                    **item_request,
-                    callback_func=self.handle_streamed_item,
-                    callback_kwargs={"story_item": story_item, **kwargs},
-                )
-
-            end = json.dumps({"type": "end"})
-            await websocket.send(end)
-            print(end)
+        else:
+            await super().handle_stream_request(
+                story_item.to_dict(), **{"story_item": story_item, **kwargs}
+            )
 
 
 sections_blueprint.add_url_rule(
