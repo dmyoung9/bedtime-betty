@@ -1,12 +1,11 @@
-# import asyncio
-# from dataclasses import asdict
-# import json
-# import time
-# from queue import Empty, Queue
-# from threading import Thread
+import asyncio
+from dataclasses import asdict
+import json
+from queue import Empty, Queue
+from threading import Thread
 from typing import Any, Optional, Type
 
-from quart import jsonify, request, views, ResponseReturnValue  # , websocket
+from quart import jsonify, request, views, ResponseReturnValue
 
 from betty.chat.api import ChatAPI
 from betty.database import db
@@ -20,6 +19,34 @@ async def get_auth_and_data():
     data = await request.get_json()
 
     return openai_api_key, data
+
+
+def stream_response(chat_api: ChatAPI, item_type: Type[Item], **kwargs):
+    queue: Queue = Queue()
+    job_done = object()
+    queue.put(job_done)
+
+    chat_thread = Thread(
+        target=asyncio.run,
+        args=(chat_api.stream(item_type, queue=queue, **kwargs),),
+    )
+    chat_thread.start()
+
+    while True:
+        try:
+            next_obj = queue.get(True, timeout=1)
+            if next_obj is job_done:
+                if not chat_thread.is_alive():
+                    break
+                continue
+
+            json_obj = json.dumps(asdict(next_obj))
+            print(json_obj)
+            yield f"{json_obj}\n"
+        except Empty:
+            if not chat_thread.is_alive():
+                break
+            continue
 
 
 class BaseModelView(views.MethodView):
@@ -183,81 +210,3 @@ class ListItemsView(BaseModelView):
             The result of handle_list_request.
         """
         return await self.handle_list_request()
-
-
-# class StreamItemsView(views.View):
-#     """
-#     A view for streaming items.
-
-#     Inherits from:
-#         views.View
-#     """
-
-#     methods = ["GET"]
-
-#     def __init__(self, item_type: Type[Item]):
-#         self.item_type = item_type
-
-#     @classmethod
-#     def as_view(cls, name, *class_args, **class_kwargs):
-#         view = super().as_view(name, *class_args, **class_kwargs)
-#         view.model = cls(*class_args, **class_kwargs)
-#         return view
-
-#     async def dispatch_request(self, **kwargs):
-#         return await self.websocket(**kwargs)
-
-#     async def handle_streamed_item(self, item: Item, **kwargs) -> None:
-#         """
-#         Handles a streamed item.
-
-#         Args:
-#             item (Item): The item to handle.
-#             **kwargs: Additional keyword arguments.
-#         """
-#         response = {"type": "item", "data": asdict(item)}
-#         await websocket.send(json.dumps(response))
-#         print(json.dumps(response))
-
-#     async def handle_stream_request(self, data, **kwargs):
-#         """
-#         Handles a stream request.
-
-#         Args:
-#             data (dict): The request data.
-#             **kwargs: Additional keyword arguments.
-#         """
-#         item_request = (
-#             self.item_type.get_completion_request_model().parse_obj(data).dict()
-#         )
-
-#         story_generator = ChatAPI(
-#             ai_prefix="Betty", openai_api_key=data.pop("api_key", "")
-#         )
-
-#         await story_generator.stream(
-#             self.item_type,
-#             **item_request,
-#             callback_func=self.handle_streamed_item,
-#             callback_kwargs=kwargs
-#         )
-
-#     async def websocket(self, **kwargs):
-#         """
-#         Handles a websocket connection.
-
-#         **kwargs: Additional keyword arguments.
-#         """
-#         while True:
-#             message = await websocket.receive()
-#             data = json.loads(message)
-#             if data.get("type") == "request":
-#                 start = json.dumps({"type": "start"})
-#                 await websocket.send(start)
-#                 print(start)
-
-#                 await self.handle_stream_request(data.get("data", {}), **kwargs)
-
-#                 end = json.dumps({"type": "end"})
-#                 await websocket.send(end)
-#                 print(end)
