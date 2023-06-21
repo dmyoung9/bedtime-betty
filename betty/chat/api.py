@@ -1,7 +1,8 @@
 import ast
 import json
+from queue import Queue
 
-from typing import Any, Callable, Coroutine, Type
+from typing import Type
 
 from dotenv import load_dotenv
 
@@ -22,40 +23,11 @@ MODEL = "gpt-3.5-turbo"
 
 
 class ChatAPI:
-    """
-    A class used to handle the chat API
-
-    ...
-
-    Attributes
-    ----------
-    ai_prefix : str
-        a string used as the prefix for the AI
-    model : str
-        the model used for the AI (default is 'gpt-3.5-turbo')
-    chat_args : list
-        list of arguments for the chat
-    chat_kwargs : dict
-        dictionary of keyword arguments for the chat
-    chat : ChatOpenAI
-        instance of ChatOpenAI
-
-    Methods
-    -------
-    _parse_response(output: str, response_model: Type[ItemResponseModel]) -> list[ItemModel]
-        Parse the output from the chat
-    _run_chain(item_type: Type[Item], chat: ChatOpenAI, callbacks: list[BaseCallbackHandler], *args, **kwargs) -> list[Item]
-        Run a chain of conversation
-    generate(item_type: Type[Item], *args, **kwargs) -> list[Item]
-        Generate a list of items
-    stream(item_type: Type[Item], callback_func: Callable[[Item], Coroutine[Any, Any, None]], callback_kwargs: dict[Any, Any], *args, **kwargs) -> None
-        Stream a list of items
-    """
-
     def __init__(self, ai_prefix, model=MODEL, *args, **kwargs):
         self.chat_args = [model, *args]
         self.chat_kwargs = kwargs
         self.chat = None
+
         self.ai_prefix = ai_prefix
 
     def _parse_response(
@@ -84,7 +56,7 @@ class ChatAPI:
                 json.dumps(ast.literal_eval(output)), response_model
             )
 
-    async def _run_chain(
+    def _run_chain(
         self,
         item_type: Type[Item],
         chat: ChatOpenAI,
@@ -126,7 +98,7 @@ class ChatAPI:
         prompts = get_prompts_for_item(item_type)
         for step in prompts:
             chat_prompt = ChatPromptTemplate.from_messages(step).format(**info)
-            output = await chain.arun(input=chat_prompt, callbacks=callbacks)
+            output = chain.run(input=chat_prompt, callbacks=callbacks)
 
         return [
             item_type(**item) for item in self._parse_response(output, obj_response)
@@ -152,15 +124,10 @@ class ChatAPI:
         """
         chat = ChatOpenAI(**self.chat_kwargs)
 
-        return await self._run_chain(item_type, chat, [], *args, **kwargs)
+        return self._run_chain(item_type, chat, [], *args, **kwargs)
 
     async def stream(
-        self,
-        item_type: Type[Item],
-        callback_func: Callable[[Item], Coroutine[Any, Any, None]],
-        callback_kwargs: dict[Any, Any],
-        *args,
-        **kwargs
+        self, item_type: Type[Item], queue: Queue, *args, **kwargs
     ) -> None:
         """
         Stream a list of items
@@ -179,6 +146,6 @@ class ChatAPI:
             dictionary of additional keyword arguments
         """
         chat = ChatOpenAI(streaming=True, **self.chat_kwargs)
-        callbacks = [JSONStreamingHandler(item_type, callback_func, callback_kwargs)]
+        callbacks = [JSONStreamingHandler(item_type, queue)]
 
-        await self._run_chain(item_type, chat, callbacks, *args, **kwargs)
+        self._run_chain(item_type, chat, callbacks, *args, **kwargs)
