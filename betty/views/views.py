@@ -7,9 +7,9 @@ from typing import Any, Optional, Type
 
 from quart import jsonify, request, views, ResponseReturnValue
 
-from betty.chat.api import ChatAPI
-from betty.database import db
-from betty.types import Item
+from ..chat.api import ChatAPI
+from ..database import db
+from ..types import Item
 
 
 async def get_auth_and_data():

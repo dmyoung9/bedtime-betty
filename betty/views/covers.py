@@ -1,9 +1,9 @@
 from quart import Blueprint
 
-from betty.chat.api import ChatAPI
-from betty.types.covers import Cover
-
 from .views import GenerateItemsView, get_auth_and_data, stream_response
+
+from ..chat.api import ChatAPI
+from ..types.covers import Cover
 
 
 covers_blueprint = Blueprint("covers", __name__)

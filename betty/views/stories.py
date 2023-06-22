@@ -1,8 +1,9 @@
 from quart import Blueprint
 
-from betty.types.stories import Story
-
 from .views import CreateItemsView, ListItemsView, RetrieveItemsView
+
+from ..types.stories import Story
+
 
 stories_blueprint = Blueprint("stories", __name__)
 

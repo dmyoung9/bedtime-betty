@@ -7,8 +7,8 @@ from pydantic import Field
 
 from sqlalchemy.orm import Mapped
 
-from ..database import db
 from . import Item, ItemDatabaseModel, ItemModel, ItemRequestModel, ItemResponseModel
+from ..database import db
 
 
 @dataclass
@@ -38,7 +38,8 @@ class Section(Item):
         Get the Pydantic model for a completion request of a Section item.
 
         Returns:
-            Type[SectionCompletionRequestModel]: The Pydantic model for a completion request of a Section item.
+            Type[SectionCompletionRequestModel]: The Pydantic model for a completion
+             request of a Section item.
         """
         return SectionCompletionRequestModel
 
@@ -48,7 +49,8 @@ class Section(Item):
         Get the Pydantic model for the response from a completion of a Section item.
 
         Returns:
-            Type[ItemResponseModel[SectionModel]]: The Pydantic model for the response from a completion of a Section item.
+            Type[ItemResponseModel[SectionModel]]: The Pydantic model for the response
+             from a completion of a Section item.
         """
         return ItemResponseModel[SectionModel]
 

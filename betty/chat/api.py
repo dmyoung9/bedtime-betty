@@ -1,7 +1,6 @@
 import ast
 import json
 from queue import Queue
-
 from typing import Type
 
 from dotenv import load_dotenv

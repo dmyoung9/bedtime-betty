@@ -1,8 +1,4 @@
-from dotenv import load_dotenv
-
-from betty.app import quart_app
-
-load_dotenv()
+from betty import quart_app
 
 HOST = "0.0.0.0"
 PORT = 5000
